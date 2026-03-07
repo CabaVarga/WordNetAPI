@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="MSTest" Version="3.6.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WordNet\WordNet.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="LAIR.Collections">
+      <HintPath>..\WordNet\bin\Debug\LAIR.Collections.dll</HintPath>
+    </Reference>
+    <Reference Include="LAIR.Extensions">
+      <HintPath>..\WordNet\bin\Debug\LAIR.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="LAIR.IO">
+      <HintPath>..\WordNet\bin\Debug\LAIR.IO.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
+  </ItemGroup>
+
+</Project>
