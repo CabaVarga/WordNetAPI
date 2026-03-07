@@ -1,0 +1,28 @@
+name: CI Build
+
+on:
+  push:
+    branches:
+      - master
+      - main
+      - feature/**
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  restore-build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Restore
+        run: dotnet restore src/WordNet.sln
+
+      - name: Build
+        run: dotnet build src/WordNet.sln --configuration Release --no-restore

@@ -1,7 +1,40 @@
 # WordNetAPI Modernization Plan
 
 Date: 2026-03-07  
-Source: `docs/quick-repo-audit.md`
+Source: `docs/quick-repo-audit.md`, `docs/lair-dependencies.md`
+
+## Progress Update - 2026-03-08
+
+## Stop-Point Snapshot - 2026-03-08
+
+### Current state
+
+- Phase 0 baseline build command is documented in `docs/quick-repo-audit.md`.
+- Minimal CI workflow exists at `.github/workflows/ci-build.yml` (`restore` + `build` for `src/WordNet.sln`).
+- `AllRules.ruleset` warning is tracked, but final remediation choice is not yet applied.
+- Prerequisites and setup guidance in `README.md` is still minimal and needs modernization.
+- LAIR dependency extraction strategy is documented and sequenced in this plan (`Phase 3A`).
+
+### Next step plan
+
+1. Run the new CI workflow on the fork/default branch and confirm first green run.
+2. Resolve `AllRules.ruleset` in both legacy project files (`add file` or `remove ruleset setting`).
+3. Add a short `Prerequisites and Build` section in `README.md`.
+4. Start Phase 1 characterization tests (`GetSynSets`, `GetMostCommonSynSet` first).
+
+### Completed findings and decisions
+
+- [x] Baseline buildability validated on modern SDK (`dotnet 9`), including clean rebuild.
+- [x] Known warning identified and tracked: missing `AllRules.ruleset` (`MSB3884`).
+- [x] Runtime mutation risk documented: engine rewrites `index.*` when marker file is missing.
+- [x] Dependency inventory completed for `LAIR.*` with concrete usage map across projects.
+- [x] Initial dependency direction defined: remove LAIR from core in staged order (`LAIR.Extensions` -> `LAIR.IO` -> `LAIR.Collections`).
+
+### Newly clarified scope
+
+- `LAIR.Extensions` replacement is low risk and can be done first.
+- `LAIR.IO.BinarySearchTextStream` replacement is medium risk and should be validated with disk-mode tests.
+- `LAIR.Collections.Set<T>` replacement is highest risk and should use a compatibility shim before any public API cleanup.
 
 ## Goals
 
@@ -19,10 +52,23 @@ Source: `docs/quick-repo-audit.md`
 
 ## Phase 0 - Baseline and Guardrails (1-2 days)
 
-- [ ] Capture a reproducible baseline build command in docs.
-- [ ] Add a minimal CI job: restore/build only (no tests yet).
+- [x] Capture a reproducible baseline build command in docs.
+- [x] Add a minimal CI job: restore/build only (no tests yet).
 - [ ] Track known warnings (currently missing `AllRules.ruleset`) and decide: add file vs remove setting.
 - [ ] Document required local prerequisites and data location assumptions.
+
+### Phase 0 Status - 2026-03-08
+
+- Baseline command is documented in `docs/quick-repo-audit.md` (`dotnet build src/WordNet.sln`, plus clean rebuild check).
+- Minimal CI workflow added at `.github/workflows/ci-build.yml` with `restore` + `build` steps.
+- `AllRules.ruleset` warning is tracked, but decision work (add file vs remove ruleset setting) is still pending.
+- Data location assumptions are documented (`resources/` usage), but local prerequisites are still not fully documented in onboarding/build docs.
+
+### Next Step Plan (Phase 0 Closeout)
+
+1. Run the new CI workflow and verify first green result on the default branch.
+2. Resolve `AllRules.ruleset` path by choosing one approach and applying it in both project files.
+3. Add a short "Prerequisites and Build" section to `README.md` (SDK version, build command, expected `resources/` layout).
 
 **Acceptance criteria**
 
@@ -78,6 +124,25 @@ Stabilize `LAIR.*` dependency story.
 
 - Build succeeds from a clean checkout using documented steps only.
 - No hidden GAC/local-machine assumptions.
+
+## Phase 3A - LAIR Extraction Track (3-6 days, can overlap Phases 1-4)
+
+Translate findings from `docs/lair-dependencies.md` into executable tasks for removing `LAIR.*` from core library code with controlled risk.
+
+- [ ] Remove `LAIR.Extensions` usage from `WordNet` code paths:
+  - [ ] Replace `EnsureContainsKey(...)` with explicit dictionary initialization.
+  - [ ] Replace `TryReadLine(...)` with `ReadLine()` null-check loops.
+  - [ ] Replace `SetPosition(...)` with buffered stream reset pattern.
+- [ ] Replace `LAIR.IO.BinarySearchTextStream` in disk-mode index lookup with internal helper.
+- [ ] Introduce an internal `Set<T>` compatibility shim to preserve current behavior (`AddRange`, read-only semantics, constructors in use).
+- [ ] Remove `LAIR.*` references from `WordNet.csproj` once replacements are in place.
+- [ ] Validate changes with characterization tests before touching `TestApplication` and test-project references.
+
+**Acceptance criteria**
+
+- `src/WordNet/WordNet.csproj` has no `LAIR.*` references.
+- Characterization tests pass for both in-memory and disk-mode representative cases.
+- Public behavior remains stable for existing consumer-facing flows.
 
 ## Phase 4 - API Robustness and Lifetime Management (3-4 days)
 
