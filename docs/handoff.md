@@ -1,6 +1,6 @@
 # WordNetAPI Handoff
 
-Date: 2026-03-08 (updated 2026-03-08, session 11)
+Date: 2026-03-08 (updated 2026-03-08, session 12)
 
 ## Current working context
 
@@ -82,15 +82,16 @@ Migrate the legacy project files to SDK-style while preserving behavior and comp
 
 ### Pending
 
-- [ ] Define exact Phase 5 migration sequence for `WordNet.csproj` and `TestApplication.csproj`.
-- [ ] Execute SDK-style conversion in small commits while keeping API and behavior unchanged.
-- [ ] Run full test suite and project builds after each migration step.
+- [ ] Convert `src/WordNet/WordNet.csproj` to SDK-style (`net48`) while preserving assembly/output behavior.
+- [ ] Convert `src/TestApplication/TestApplication.csproj` to SDK-style (`net48`, WinForms) while preserving resource/designer behavior.
+- [ ] Clean `src/WordNet.sln` legacy configuration noise and remove obsolete net40 CI/workaround plumbing.
+- [ ] Re-run full restore/build/test validation and update handoff documents with final outcomes.
 
 ## Recommended immediate next steps
 
-1. Start Phase 5 with `WordNet.csproj` conversion plan and rollback checkpoints.
-2. Convert one project at a time and validate with `dotnet build` + `dotnet test`.
-3. Keep `docs/handoff.md` and `docs/handoff-archive.md` synchronized per milestone.
+1. Convert `WordNet.csproj` to SDK-style first, preserving assembly metadata compatibility.
+2. Convert `TestApplication.csproj` to SDK-style WinForms, then clean up `.sln` and CI net40-only steps.
+3. Run restore/build/test end-to-end and sync `docs/handoff.md` + `docs/handoff-archive.md` with results.
 
 ## Quick restart prompt (for new chat)
 
