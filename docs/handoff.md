@@ -1,6 +1,6 @@
 # WordNetAPI Handoff
 
-Date: 2026-03-08 (updated 2026-03-08, session 9)
+Date: 2026-03-08 (updated 2026-03-08, session 10)
 
 ## Current working context
 
@@ -49,7 +49,7 @@ Date: 2026-03-08 (updated 2026-03-08, session 9)
 - 28/28 tests pass; 0 warnings, 0 errors across all projects.
 - CI green on both runners: runs `22825302479` / `22825311015`.
 
-## Current status (Phase 4 — active on `feature/phase-4`)
+## Current status (Phase 4 — complete, pending PR on `feature/phase-4`)
 
 ### Goal
 
@@ -76,18 +76,17 @@ Improve API robustness and lifetime management. Consumers should be able to safe
   - `RobustnessTests`: double-dispose, use-after-close, POS contract, and concurrent disk-read regression.
   - `SimilarityModelTests`: null argument contracts for model constructor and overloads.
 - [x] Test suite now passes 36/36 locally (`dotnet test src/WordNet.Tests/WordNet.Tests.csproj`).
+- [x] `README.md` updated with the explicit preprocessing contract (`SortIndexFiles`) and thread-safety/lifetime guidance.
 
 ### Pending
 
-- [ ] Expand concurrency coverage beyond repeated noun lookups (e.g., mixed POS and multi-method parallel reads).
-- [ ] Decide and document whether `WordNetEngine` should remain "thread-safe for reads only" as a supported contract.
-- [ ] Open Phase 4 PR once docs are fully synchronized.
+- [ ] Open Phase 4 PR (no push until instructed).
 
 ## Recommended immediate next steps
 
-1. Update `docs/modernization-plan.md` and `docs/handoff-archive.md` with Phase 4 progress snapshot.
-2. Add one more stress-oriented thread-safety test that exercises `AllWords` and `GetSynSet` concurrently.
-3. Prepare/open the Phase 4 PR when instructed.
+1. Review Phase 4 commits (`73587e1`, `b217675`) and verify PR scope.
+2. Open Phase 4 PR when instructed.
+3. Merge PR, then begin Phase 5 planning.
 
 ## Quick restart prompt (for new chat)
 
@@ -96,7 +95,7 @@ Use D:\WordNetAPI-fork on branch feature/phase-4.
 Read docs/handoff.md, docs/modernization-plan.md.
 Phases 0–3 are merged to master. Phase 4 is active — working tree is clean.
 36/36 tests pass. Do not push until instructed.
-Phase 4 goal: API robustness — IDisposable, typed exceptions, thread-safety audit.
+Phase 4 implementation is complete on branch `feature/phase-4`; PR is pending.
 
 WORKFLOW REMINDER: When opening a new branch, add a new entry to docs/handoff-archive.md
 as the first or second commit, before any implementation work. Record the trigger, references

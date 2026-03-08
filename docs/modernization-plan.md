@@ -3,7 +3,7 @@
 Date: 2026-03-07  
 Source: `docs/quick-repo-audit.md`, `docs/lair-dependencies.md`
 
-## Status snapshot - 2026-03-08 (updated 2026-03-08, session 9)
+## Status snapshot - 2026-03-08 (updated 2026-03-08, session 10)
 
 | Phase | Status |
 |---|---|
@@ -11,7 +11,7 @@ Source: `docs/quick-repo-audit.md`, `docs/lair-dependencies.md`
 | Phase 1 — Characterization Tests | ✓ Complete (merged PR #2) |
 | Phase 2 — Runtime Side-Effect Hardening | ✓ Complete (merged PR #3) |
 | Phase 3 — Dependency Reproducibility / LAIR Extraction | ✓ Complete (merged PR #4) |
-| Phase 4 — API Robustness | 🔄 Active (`feature/phase-4`) |
+| Phase 4 — API Robustness | ✅ Complete (pending PR from `feature/phase-4`) |
 | Phase 5 — Project System Migration | Pending |
 | Phase 6 — Forward Port | Optional |
 
@@ -108,7 +108,7 @@ Stabilized `LAIR.*` dependency story by inlining/replacing the minimal needed fu
 - 28/28 characterization tests pass in CI on both runners.
 - No hidden GAC/local-machine assumptions.
 
-## Phase 4 - API Robustness and Lifetime Management ← ACTIVE on `feature/phase-4`
+## Phase 4 - API Robustness and Lifetime Management ✅ COMPLETE (pending PR from `feature/phase-4`)
 
 - [x] Implement `IDisposable` on `WordNetEngine` (keep `Close()` as compatibility shim).
 - [x] Add defensive argument validation and typed exceptions where currently broad `Exception` is thrown.
@@ -116,6 +116,7 @@ Stabilized `LAIR.*` dependency story by inlining/replacing the minimal needed fu
 - [x] Add tests for disposal behavior and failure contracts.
 - [x] Add similarity-model argument contract tests (constructor and both overloads).
 - [x] Test suite expanded from 28 to 36 passing tests.
+- [x] README updated with explicit preprocessing and thread-safety/lifetime contract notes.
 
 **Acceptance criteria**
 
@@ -161,6 +162,6 @@ Only after previous phases are green.
 
 ## Suggested Next 3 Tasks (Start Here)
 
-1. **[Phase 4 — active]** Add broader concurrent-read coverage (`AllWords` + mixed POS calls) to further validate locking behavior.
-2. Document thread-safety contract in API docs/README (read-safe vs single-threaded guidance).
-3. Prepare Phase 4 PR description and verification notes when instructed.
+1. Open and merge the Phase 4 PR.
+2. Start Phase 5 planning: legacy-to-SDK project conversion strategy and sequencing.
+3. Confirm Phase 5 migration safety net (test matrix + rollback checkpoints).
