@@ -57,7 +57,27 @@ Keep the table below updated. One row per phase; update when a phase closes (PR 
 | 0 — Baseline and Guardrails       | 1a       | `4735631` | 0 (build-only) | [#1](https://github.com/CabaVarga/WordNetAPI/pull/1) |
 | 1 — Characterization Tests        | 1b, 2a   | `682abc7` | 26             | [#2](https://github.com/CabaVarga/WordNetAPI/pull/2) |
 | 2 — Runtime Side-Effect Hardening | 2b, 3    | `07c1b68` | 28             | [#3](https://github.com/CabaVarga/WordNetAPI/pull/3) |
-| 3 — Dependency Reproducibility    | 4, 5 →   | —         | 28             | pending |
+| 3 — Dependency Reproducibility    | 4, 5, 6 → | —         | 28             | pending |
+
+---
+
+## Session 6 — 2026-03-08 · `0fe1656` · branch `feature/phase-3`
+
+**Trigger:** Continuation of Phase 3; A2 (`LAIR.IO.BinarySearchTextStream` replacement) implemented.
+
+**References:** No PR yet · 28 tests at close (local Release config).
+
+**Changes to handoff.md:**
+
+- Date line updated to "session 6".
+- Done list expanded: A2 marked complete — `src/WordNet/Internal/BinarySearchTextStream.cs`
+  added as internal byte-level binary search; `using LAIR.IO;` removed from `WordNetEngine.cs`;
+  `<Compile Include>` added to legacy `WordNet.csproj`. 28/28 tests, 0 warnings, 0 errors.
+- Recommended next steps updated: A3.1 is now first (internal `Set<T>` shim), then LAIR
+  ref removal, then downstream project cleanup.
+- Quick restart prompt updated: A1 and A2 described as complete; directs to continue with A3.1.
+
+**Complications / deviations:** None.
 
 ---
 
