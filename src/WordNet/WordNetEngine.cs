@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -194,6 +194,75 @@ namespace LAIR.ResourceAPIs.WordNet
         }
 
         /// <summary>
+        /// Sorts the WordNet index files in the given directory for use with the .NET binary-search API and writes a
+        /// marker file so the operation is not repeated. This must be called once as an explicit preprocessing step
+        /// before constructing a <see cref="WordNetEngine"/> against that directory.
+        /// </summary>
+        /// <param name="wordNetDirectory">Path to the WordNet data directory containing the index files.</param>
+        public static void SortIndexFiles(string wordNetDirectory)
+        {
+            if (!System.IO.Directory.Exists(wordNetDirectory))
+                throw new DirectoryNotFoundException("Non-existent WordNet directory:  " + wordNetDirectory);
+
+            string[] indexPaths = new string[]
+            {
+                Path.Combine(wordNetDirectory, "index.adj"),
+                Path.Combine(wordNetDirectory, "index.adv"),
+                Path.Combine(wordNetDirectory, "index.noun"),
+                Path.Combine(wordNetDirectory, "index.verb")
+            };
+
+            foreach (string indexPath in indexPaths)
+                if (!System.IO.File.Exists(indexPath))
+                    throw new FileNotFoundException("Failed to find WordNet index file:  " + indexPath);
+
+            /* make sure the index files are sorted according to the current sort order. the index files in the
+             * wordnet distribution are sorted in the order needed for (presumably) the java api, which uses
+             * a different sort order than the .net runtime. thus, unless we resort the lines in the index 
+             * files, we won't be able to do a proper binary search over the data. */
+            foreach (string indexPath in indexPaths)
+            {
+                string tempPath = Path.GetTempFileName();
+                StreamWriter tempFile = new StreamWriter(tempPath);
+
+                int numWords = 0;
+                StreamReader indexFile = new StreamReader(indexPath);
+                string line;
+                while (indexFile.TryReadLine(out line))
+                    if (!line.StartsWith(" "))
+                        ++numWords;
+
+                Dictionary<string, string> wordLine = new Dictionary<string, string>(numWords);
+                indexFile = new StreamReader(indexPath);
+                while (indexFile.TryReadLine(out line))
+                    if (line.StartsWith(" "))
+                        tempFile.WriteLine(line);
+                    else
+                    {
+                        line = line.Trim();
+                        wordLine.Add(line.Substring(0, line.IndexOf(' ')), line);
+                    }
+
+                List<string> sortedWords = new List<string>(wordLine.Count);
+                sortedWords.AddRange(wordLine.Keys);
+                sortedWords.Sort();
+
+                foreach (string word in sortedWords)
+                    tempFile.WriteLine(wordLine[word]);
+
+                tempFile.Close();
+
+                System.IO.File.Delete(indexPath);
+                System.IO.File.Move(tempPath, indexPath);
+            }
+
+            string sortFlagPath = Path.Combine(wordNetDirectory, ".sorted_for_dot_net");
+            StreamWriter sortFlagFile = new StreamWriter(sortFlagPath);
+            sortFlagFile.WriteLine("This file serves no purpose other than to indicate that the WordNet distribution data in the current directory has been sorted for use by the .NET API.");
+            sortFlagFile.Close();
+        }
+
+        /// <summary>
         /// Gets the relation for a given POS and symbol
         /// </summary>
         /// <param name="pos">POS to get relation for</param>
@@ -370,60 +439,9 @@ namespace LAIR.ResourceAPIs.WordNet
             #region index file sorting
             string sortFlagPath = Path.Combine(_wordNetDirectory, ".sorted_for_dot_net");
             if (!System.IO.File.Exists(sortFlagPath))
-            {
-                /* make sure the index files are sorted according to the current sort order. the index files in the
-                 * wordnet distribution are sorted in the order needed for (presumably) the java api, which uses
-                 * a different sort order than the .net runtime. thus, unless we resort the lines in the index 
-                 * files, we won't be able to do a proper binary search over the data. */
-                foreach (string indexPath in indexPaths)
-                {
-                    // create temporary file for sorted lines
-                    string tempPath = Path.GetTempFileName();
-                    StreamWriter tempFile = new StreamWriter(tempPath);
-
-                    // get number of words (lines) in file
-                    int numWords = 0;
-                    StreamReader indexFile = new StreamReader(indexPath);
-                    string line;
-                    while (indexFile.TryReadLine(out line))
-                        if (!line.StartsWith(" "))
-                            ++numWords;
-
-                    // get lines in file, sorted by first column (i.e., the word)
-                    Dictionary<string, string> wordLine = new Dictionary<string, string>(numWords);
-                    indexFile = new StreamReader(indexPath);
-                    while (indexFile.TryReadLine(out line))
-                        // write header lines to temp file immediately
-                        if (line.StartsWith(" "))
-                            tempFile.WriteLine(line);
-                        else
-                        {
-                            // trim useless blank spaces from line and map line to first column
-                            line = line.Trim();
-                            wordLine.Add(line.Substring(0, line.IndexOf(' ')), line);
-                        }
-
-                    // get sorted words
-                    List<string> sortedWords = new List<string>(wordLine.Count);
-                    sortedWords.AddRange(wordLine.Keys);
-                    sortedWords.Sort();
-
-                    // write lines sorted by word
-                    foreach (string word in sortedWords)
-                        tempFile.WriteLine(wordLine[word]);
-
-                    tempFile.Close();
-
-                    // replace original index file with properly sorted one
-                    System.IO.File.Delete(indexPath);
-                    System.IO.File.Move(tempPath, indexPath);
-                }
-
-                // create flag file, indicating that we've sorted the data
-                StreamWriter sortFlagFile = new StreamWriter(sortFlagPath);
-                sortFlagFile.WriteLine("This file serves no purpose other than to indicate that the WordNet distribution data in the current directory has been sorted for use by the .NET API.");
-                sortFlagFile.Close();
-            }
+                throw new InvalidOperationException(
+                    "WordNet index files have not been sorted for use with the .NET API. " +
+                    "Call WordNetEngine.SortIndexFiles(wordNetDirectory) once as an explicit preprocessing step before loading the engine.");
             #endregion
 
             #region engine init

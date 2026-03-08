@@ -9,7 +9,7 @@ Source: `docs/quick-repo-audit.md`, `docs/lair-dependencies.md`
 |---|---|
 | Phase 0 — Baseline and Guardrails | ✓ Complete (merged PR #1) |
 | Phase 1 — Characterization Tests | ✓ Complete (merged PR #2) |
-| Phase 2 — Runtime Side-Effect Hardening | 🔄 In progress (`feature/phase-2`) |
+| Phase 2 — Runtime Side-Effect Hardening | ✓ Complete (`feature/phase-2`, pending PR) |
 | Phase 3 — Dependency Reproducibility | Pending |
 | Phase 3A — LAIR Extraction | Pending |
 | Phase 4 — API Robustness | Pending |
@@ -73,18 +73,19 @@ Source: `docs/quick-repo-audit.md`, `docs/lair-dependencies.md`
 - 26 deterministic tests pass in CI (exceeds 15–25 target).
 - Tests pin current behavior for both common and edge-case inputs.
 
-## Phase 2 - Runtime Side-Effect Hardening (2-4 days) ← ACTIVE on `feature/phase-2`
+## Phase 2 - Runtime Side-Effect Hardening ✓ COMPLETE on `feature/phase-2`
 
 Address index-file mutation in `WordNetEngine` constructor.
 
-- [ ] Introduce explicit preprocessing mode/tool for sorting index files.
-- [ ] Remove implicit write/mutate behavior from normal engine initialization.
-- [ ] Fail fast with clear error if unsorted data is detected and preprocessing was not run.
-- [ ] Add tests for:
-  - [ ] Sorted dataset path (success)
-  - [ ] Unsorted dataset path (predictable failure or explicit preprocess requirement)
+- [x] Introduce explicit preprocessing mode/tool for sorting index files: `WordNetEngine.SortIndexFiles(wordNetDirectory)`.
+- [x] Remove implicit write/mutate behavior from normal engine initialization.
+- [x] Fail fast with clear `InvalidOperationException` if `.sorted_for_dot_net` marker is absent.
+- [x] Add tests for:
+  - [x] Sorted dataset path — engine constructs without modifying any index file (`Constructor_SortedDirectory_DoesNotModifyIndexFiles`).
+  - [x] Unsorted dataset path — constructor throws `InvalidOperationException` (`Constructor_UnsortedDirectory_ThrowsInvalidOperationException`).
+- [x] 28/28 tests pass.
 
-**Acceptance criteria**
+**Acceptance criteria met:**
 
 - Normal runtime reads data only; no file rewrite occurs.
 - Behavior is explicit and documented.
@@ -175,6 +176,6 @@ Only after previous phases are green.
 
 ## Suggested Next 3 Tasks (Start Here)
 
-1. **[Phase 2 — active]** Audit `WordNetEngine` constructor: locate and isolate the index-sorting write path, extract it into an explicit preprocessing step, and add fail-fast guard + tests.
+1. **[Phase 2 — complete]** Audit `WordNetEngine` constructor: sorting extracted to `SortIndexFiles()`, fail-fast guard added, 2 new tests, 28/28 passing.
 2. Decide dependency strategy for `LAIR.*` and document the chosen approach (Phase 3).
 3. Begin LAIR extraction with `LAIR.Extensions` replacements — lowest risk, can overlap Phase 2 (Phase 3A).
