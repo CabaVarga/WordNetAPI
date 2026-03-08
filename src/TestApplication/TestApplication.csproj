@@ -51,15 +51,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="LAIR.Collections">
-      <HintPath>..\..\lib\LAIR.Collections.dll</HintPath>
-    </Reference>
-    <Reference Include="LAIR.Extensions">
-      <HintPath>..\..\lib\LAIR.Extensions.dll</HintPath>
-    </Reference>
-    <Reference Include="LAIR.IO">
-      <HintPath>..\..\lib\LAIR.IO.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
