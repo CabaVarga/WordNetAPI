@@ -80,27 +80,22 @@ Stabilize the `LAIR.*` dependency story so the library builds reproducibly from 
 
 ### Pending
 
-- [ ] Add dependency provenance note to docs.
+- [ ] PR #4 for Phase 3 — ready to open.
 
 ## Recommended immediate next steps
 
-1. Add dependency provenance note to docs (record that `Set<T>` and `BinarySearchTextStream` are internal replacements derived from the LAIR API surface).
-2. Open PR for Phase 3 when instructed.
-3. Begin Phase 4 (API Robustness — `IDisposable`, defensive validation, typed exceptions).
+1. Merge PR #4 for Phase 3.
+2. Begin Phase 4 on a new branch (API Robustness — `IDisposable`, defensive validation, typed exceptions).
 
 See `docs/lair-dependencies.md` for the full usage map and replacement table.
 
 ## Quick restart prompt (for new chat)
 
 ```text
-Use D:\WordNetAPI-fork on branch feature/phase-3.
-Read docs/handoff.md, docs/modernization-plan.md, and docs/lair-dependencies.md.
-Phases 0–2 are merged to master. Phase 3 is active — working tree is clean.
-28/28 tests pass. Do not push until instructed.
-Phase 3 goal: remove LAIR.* dependencies — COMPLETE.
-A1 (LAIR.Extensions), A2 (BinarySearchTextStream), A3.1 (Set<T> shim) all done.
-All LAIR.* DLL references removed from all three csproj files. 0 warnings, 0 errors.
-Remaining: add dependency provenance note to docs, then open PR when instructed.
+Use D:\WordNetAPI-fork on branch master (after merging PR #4).
+Read docs/handoff.md, docs/modernization-plan.md.
+Phases 0–3 are merged to master. 28/28 tests pass. All LAIR.* dependencies removed.
+Begin Phase 4: API Robustness (IDisposable, defensive validation, typed exceptions).
 
 WORKFLOW REMINDER: When opening a new branch, add a new entry to docs/handoff-archive.md
 as the first or second commit, before any implementation work. Record the trigger, references
