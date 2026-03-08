@@ -18,13 +18,13 @@
 
   <ItemGroup>
     <Reference Include="LAIR.Collections">
-      <HintPath>..\WordNet\bin\Debug\LAIR.Collections.dll</HintPath>
+      <HintPath>..\..\lib\LAIR.Collections.dll</HintPath>
     </Reference>
     <Reference Include="LAIR.Extensions">
-      <HintPath>..\WordNet\bin\Debug\LAIR.Extensions.dll</HintPath>
+      <HintPath>..\..\lib\LAIR.Extensions.dll</HintPath>
     </Reference>
     <Reference Include="LAIR.IO">
-      <HintPath>..\WordNet\bin\Debug\LAIR.IO.dll</HintPath>
+      <HintPath>..\..\lib\LAIR.IO.dll</HintPath>
     </Reference>
   </ItemGroup>
 

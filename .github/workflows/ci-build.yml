@@ -19,7 +19,13 @@ jobs:
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0.x
+          dotnet-version: 9.0.300
+
+      - name: Install .NET Framework 4.0.1 targeting pack
+        run: choco install netfx-4.0.1-devpack -y
+
+      - name: Show .NET info
+        run: dotnet --info
 
       - name: Restore
         run: dotnet restore src/WordNet.sln
