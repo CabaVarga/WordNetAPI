@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -60,6 +60,9 @@ namespace LAIR.ResourceAPIs.WordNet
         /// <param name="wordNetEngine">WordNet engine to use</param>
         public WordNetSimilarityModel(WordNetEngine wordNetEngine)
         {
+            if (wordNetEngine == null)
+                throw new ArgumentNullException("wordNetEngine");
+
             _wordNetEngine = wordNetEngine;
         }
 
@@ -75,6 +78,11 @@ namespace LAIR.ResourceAPIs.WordNet
         /// <returns>Similarity</returns>
         public float GetSimilarity(string string1, WordNetEngine.POS pos1, string string2, WordNetEngine.POS pos2, Strategy strategy, params WordNetEngine.SynSetRelation[] relations)
         {
+            if (string1 == null)
+                throw new ArgumentNullException("string1");
+            if (string2 == null)
+                throw new ArgumentNullException("string2");
+
             float similarity = 0;
 
             if (strategy == Strategy.WuPalmer1994Average)
@@ -131,7 +139,7 @@ namespace LAIR.ResourceAPIs.WordNet
                 throw new NotImplementedException("Unimplemented strategy:  " + strategy);
 
             if (similarity < 0 || similarity > 1)
-                throw new Exception("Invalid similarity:  " + similarity);
+                throw new InvalidOperationException("Invalid similarity:  " + similarity);
 
             return similarity;
         }
@@ -147,6 +155,11 @@ namespace LAIR.ResourceAPIs.WordNet
         /// <returns>Similarity</returns>
         public float GetSimilarity(SynSet synset1, SynSet synset2, Strategy strategy, params WordNetEngine.SynSetRelation[] relations)
         {
+            if (synset1 == null)
+                throw new ArgumentNullException("synset1");
+            if (synset2 == null)
+                throw new ArgumentNullException("synset2");
+
             if (relations == null)
                 relations = Enum.GetValues(typeof(WordNetEngine.SynSetRelation)).Cast<WordNetEngine.SynSetRelation>().ToArray();
 
@@ -170,10 +183,10 @@ namespace LAIR.ResourceAPIs.WordNet
                 }
             }
             else
-                throw new NotImplementedException("Unrecognized strategy");
+                throw new NotImplementedException("Unimplemented strategy:  " + strategy);
 
             if (similarity < 0 || similarity > 1)
-                throw new Exception("Invalid similarity");
+                throw new InvalidOperationException("Invalid similarity");
             
             return similarity;
         }

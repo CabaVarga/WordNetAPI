@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -197,7 +197,7 @@ namespace TestApplication
 
                                 // check lex file name
                                 if (synset.LexicographerFileName == WordNetEngine.LexicographerFileName.None)
-                                    throw new Exception("Invalid lex file name");
+                                    throw new InvalidDataException("Invalid lex file name");
                             }
                         }
 

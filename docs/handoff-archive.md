@@ -57,7 +57,101 @@ Keep the table below updated. One row per phase; update when a phase closes (PR 
 | 0 — Baseline and Guardrails       | 1a       | `4735631` | 0 (build-only) | [#1](https://github.com/CabaVarga/WordNetAPI/pull/1) |
 | 1 — Characterization Tests        | 1b, 2a   | `682abc7` | 26             | [#2](https://github.com/CabaVarga/WordNetAPI/pull/2) |
 | 2 — Runtime Side-Effect Hardening | 2b, 3    | `07c1b68` | 28             | [#3](https://github.com/CabaVarga/WordNetAPI/pull/3) |
-| 3 — Dependency Reproducibility    | 4, 5, 6 → | —         | 28             | pending |
+| 3 — Dependency Reproducibility    | 4, 5, 6, 7 | `2bd520b` | 28             | [#4](https://github.com/CabaVarga/WordNetAPI/pull/4) |
+| 4 — API Robustness                | 8, 9, 10 → | —         | 36             | pending |
+
+---
+
+## Session 10 — 2026-03-08 · `b217675` · branch `feature/phase-4`
+
+**Trigger:** Final Phase 4 wrap-up pass requested before PR opening.
+
+**References:** PR pending · 36 tests at close (local `dotnet test`) · key commits `73587e1`, `b217675`.
+
+**Changes to handoff.md:**
+
+- Date line updated to "session 10".
+- Current status promoted from "Phase 4 active" to "Phase 4 complete, pending PR".
+- Done list expanded with README wrap-up note (explicit preprocessing contract and
+  thread-safety/lifetime guidance).
+- Pending reduced to a single actionable item: open Phase 4 PR when instructed.
+- Recommended next steps changed to PR-focused sequence and Phase 5 handoff.
+- Quick restart prompt updated to describe Phase 4 implementation as complete and PR-pending.
+
+**Complications / deviations:**
+
+- README still contained pre-Phase-2 behavior text ("engine may rewrite index files on first run").
+  Corrected during wrap-up to match current explicit preprocessing contract.
+
+---
+
+## Session 9 — 2026-03-08 · `73587e1` · branch `feature/phase-4`
+
+**Trigger:** Core Phase 4 engineering work implemented (`IDisposable`, typed exceptions, disk-mode synchronization).
+
+**References:** PR pending · 36 tests at close (local `dotnet test`) · commits `73587e1`, `b217675`.
+
+**Changes to handoff.md:**
+
+- Date line updated to "session 9".
+- Done list expanded with completed Phase 4 engineering outcomes:
+  - `WordNetEngine` `IDisposable` support with `Close()` compatibility shim.
+  - use-after-dispose guards on core API methods.
+  - disk-mode shared-stream locking for read-path synchronization.
+  - typed exception migration across `WordNetEngine`, `SynSet`, `WordNetSimilarityModel`,
+    and WinForms harness validation path.
+  - robustness + argument-contract tests added; total increased to 36/36 passing.
+- Pending narrowed to PR-oriented cleanup tasks.
+- Recommended next steps shifted from implementation to synchronization and PR prep.
+
+**Complications / deviations:** None.
+
+---
+
+## Session 8 — 2026-03-08 · `d585591` · branch `feature/phase-4`
+
+**Trigger:** Phase 3 merged; branch context switched to Phase 4 kickoff.
+
+**References:** PR [#4](https://github.com/CabaVarga/WordNetAPI/pull/4) merged · 28 tests at branch-open.
+
+**Changes to handoff.md:**
+
+- Date line updated to "session 8".
+- Active branch switched from `feature/phase-3` to `feature/phase-4`.
+- Phase 3 section reframed as complete/merged and moved into phase history.
+- Current status reset to Phase 4 scope (`IDisposable`, typed exceptions, thread-safety audit).
+- Pending and recommended steps reset from Phase 3 execution to Phase 4 implementation.
+- Quick restart prompt rewritten for Phase 4 branch context and clean-tree expectation.
+
+**Complications / deviations:** None.
+
+---
+
+## Session 7 — 2026-03-08 · `dd2991e` · branch `feature/phase-3`
+
+**Trigger:** Continuation of Phase 3; A3.1 (`Set<T>` shim) implemented; all LAIR refs removed; PR #4 opened and merged.
+
+**References:** PR [#4](https://github.com/CabaVarga/WordNetAPI/pull/4) merged · CI runs `22825302479` / `22825311015` (both runners green) · 28 tests at close.
+
+**Changes to handoff.md:**
+
+- Date line updated to "session 7".
+- Done list expanded: A3.1 marked complete — `src/WordNet/Internal/Set.cs` added as public
+  `Set<T>` in `LAIR.Collections.Generic` namespace backed by `HashSet<T>`; all three `LAIR.*`
+  DLL references removed from `WordNet.csproj`, `TestApplication.csproj`, `WordNet.Tests.csproj`.
+  28/28 tests, 0 warnings, 0 errors across all three projects.
+- Pending reduced to dependency provenance note (completed same session) and PR.
+- Recommended next steps updated: merge PR #4, then Phase 4.
+- Quick restart prompt updated: Phase 3 described as complete; points to Phase 4.
+- Dependency provenance section added to `docs/lair-dependencies.md`.
+
+**Complications / deviations:**
+
+- TestApplication build initially failed with CS0433 (ambiguous `Set<T>` between LAIR DLL and
+  WordNet assembly). Required removing LAIR refs from `TestApplication.csproj` and
+  `WordNet.Tests.csproj` in the same commit as the shim, rather than as a separate step.
+  The planned sequencing (A3.1 → remove from WordNet.csproj → remove from downstream) was
+  collapsed into a single atomic change.
 
 ---
 

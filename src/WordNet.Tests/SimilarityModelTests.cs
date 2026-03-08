@@ -99,4 +99,37 @@ public sealed class SimilarityModelTests
         Assert.IsTrue(sim >= 0f && sim <= 1f,
             $"Average WuPalmer similarity should be in [0, 1]; got {sim}");
     }
+
+    [TestMethod]
+    public void Constructor_NullWordNetEngine_ThrowsArgumentNullException()
+    {
+        Assert.ThrowsException<ArgumentNullException>(
+            () => new WordNetSimilarityModel(null!));
+    }
+
+    [TestMethod]
+    public void GetSimilarity_NullString1_ThrowsArgumentNullException()
+    {
+        Assert.ThrowsException<ArgumentNullException>(
+            () => s_model!.GetSimilarity(
+                null!,
+                WordNetEngine.POS.Noun,
+                "dog",
+                WordNetEngine.POS.Noun,
+                WordNetSimilarityModel.Strategy.WuPalmer1994MostCommon,
+                WordNetEngine.SynSetRelation.Hypernym));
+    }
+
+    [TestMethod]
+    public void GetSimilarity_NullSynset_ThrowsArgumentNullException()
+    {
+        SynSet dog = s_engine!.GetSynSet("Noun:2086723");
+
+        Assert.ThrowsException<ArgumentNullException>(
+            () => s_model!.GetSimilarity(
+                null!,
+                dog,
+                WordNetSimilarityModel.Strategy.WuPalmer1994MostCommon,
+                WordNetEngine.SynSetRelation.Hypernym));
+    }
 }

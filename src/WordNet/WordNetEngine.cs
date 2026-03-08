@@ -13,7 +13,7 @@ namespace LAIR.ResourceAPIs.WordNet
     /// fast but also hugely inefficient in terms of memory consumption. The latter uses essentially zero memory but is slow
     /// because all searches have to be conducted on-disk.
     /// </summary>
-    public class WordNetEngine
+    public class WordNetEngine : IDisposable
     {
         #region static members
         /// <summary>
@@ -291,7 +291,7 @@ namespace LAIR.ResourceAPIs.WordNet
             else if (extension == "verb")
                 pos = POS.Verb;
             else
-                throw new Exception("Unrecognized data file extension:  " + extension);
+                throw new InvalidDataException("Unrecognized data file extension:  " + extension);
 
             return pos;
         }
@@ -333,7 +333,7 @@ namespace LAIR.ResourceAPIs.WordNet
             }
 
             if (mostCommonSynSet == null)
-                throw new Exception("Failed to get most common synset");
+                throw new InvalidDataException("Failed to get most common synset");
 
             return synsets;
         }
@@ -345,6 +345,8 @@ namespace LAIR.ResourceAPIs.WordNet
         private Dictionary<POS, StreamReader> _posSynSetDataFile;                   // disk-based synset data files
         private Dictionary<POS, Dictionary<string, Set<SynSet>>> _posWordSynSets;   // in-memory pos-word synsets lookup
         private Dictionary<string, SynSet> _idSynset;                               // in-memory id-synset lookup where id is POS:Offset
+        private readonly object _diskAccessLock;
+        private bool _disposed;
 
         /// <summary>
         /// Gets whether or not the data in this WordNetEngine is stored in memory
@@ -369,6 +371,8 @@ namespace LAIR.ResourceAPIs.WordNet
         {
             get
             {
+                ThrowIfDisposed();
+
                 Dictionary<POS, Set<string>> posWords = new Dictionary<POS, Set<string>>();
 
                 if (_inMemory)
@@ -379,19 +383,22 @@ namespace LAIR.ResourceAPIs.WordNet
                     // read index file for each pos
                     foreach (POS pos in _posIndexWordSearchStream.Keys)
                     {
-                        // reset index file to start
-                        StreamReader indexFile = _posIndexWordSearchStream[pos].Stream;
-                        indexFile.DiscardBufferedData();
-                        indexFile.BaseStream.Position = 0;
+                        lock (_diskAccessLock)
+                        {
+                            // reset index file to start
+                            StreamReader indexFile = _posIndexWordSearchStream[pos].Stream;
+                            indexFile.DiscardBufferedData();
+                            indexFile.BaseStream.Position = 0;
 
-                        // read words, skipping header lines
-                        Set<string> words = new Set<string>();
-                        string line;
-                        while ((line = indexFile.ReadLine()) != null)
-                            if (!line.StartsWith(" "))
-                                words.Add(line.Substring(0, line.IndexOf(' ')));
+                            // read words, skipping header lines
+                            Set<string> words = new Set<string>();
+                            string line;
+                            while ((line = indexFile.ReadLine()) != null)
+                                if (!line.StartsWith(" "))
+                                    words.Add(line.Substring(0, line.IndexOf(' ')));
 
-                        posWords.Add(pos, words);
+                            posWords.Add(pos, words);
+                        }
                     }
 
                 return posWords;
@@ -411,6 +418,8 @@ namespace LAIR.ResourceAPIs.WordNet
             _inMemory = inMemory;
             _posIndexWordSearchStream = null;
             _posSynSetDataFile = null;
+            _diskAccessLock = new object();
+            _disposed = false;
 
             if (!System.IO.Directory.Exists(_wordNetDirectory))
                 throw new DirectoryNotFoundException("Non-existent WordNet directory:  " + _wordNetDirectory);
@@ -581,6 +590,8 @@ namespace LAIR.ResourceAPIs.WordNet
         /// <returns>SynSet</returns>
         public SynSet GetSynSet(string synsetID)
         {
+            ThrowIfDisposed();
+
             SynSet synset;
             if (_inMemory)
                 synset = _idSynset[synsetID];
@@ -611,13 +622,15 @@ namespace LAIR.ResourceAPIs.WordNet
         /// <returns>Set of SynSets that contain word</returns>
         public Set<SynSet> GetSynSets(string word, params POS[] posRestriction)
         {
+            ThrowIfDisposed();
+
             // use all POSs if none are supplied
             if (posRestriction == null || posRestriction.Length == 0)
                 posRestriction = new POS[] { POS.Adjective, POS.Adverb, POS.Noun, POS.Verb };
 
             Set<POS> posSet = new Set<POS>(posRestriction);
             if (posSet.Contains(POS.None))
-                throw new Exception("Invalid SynSet POS request:  " + POS.None);
+                throw new ArgumentException("POS.None is not a valid restriction value.", "posRestriction");
 
             // all words are lower case and space-replaced
             word = word.ToLower().Replace(' ', '_');
@@ -642,7 +655,11 @@ namespace LAIR.ResourceAPIs.WordNet
                 else
                 {
                     // get index line for word
-                    string indexLine = _posIndexWordSearchStream[pos].Search(word);
+                    string indexLine;
+                    lock (_diskAccessLock)
+                    {
+                        indexLine = _posIndexWordSearchStream[pos].Search(word);
+                    }
 
                     // if index line exists, get synset shells and instantiate them
                     if (indexLine != null)
@@ -675,6 +692,8 @@ namespace LAIR.ResourceAPIs.WordNet
         /// <returns>Most common synset for given word/pos pair</returns>
         public SynSet GetMostCommonSynSet(string word, POS pos)
         {
+            ThrowIfDisposed();
+
             // all words are lower case and space-replaced...we need to do this here, even though it gets done in GetSynSets (we use it below)
             word = word.ToLower().Replace(' ', '_');
 
@@ -693,7 +712,7 @@ namespace LAIR.ResourceAPIs.WordNet
                         if (mostCommon == null)
                             mostCommon = synset;
                         else
-                            throw new Exception("Multiple most common synsets found");
+                            throw new InvalidDataException("Multiple most common synsets found");
 
                 if (mostCommon == null)
                     throw new NullReferenceException("Failed to find most common synset");
@@ -709,19 +728,24 @@ namespace LAIR.ResourceAPIs.WordNet
         /// <param name="offset">Offset into data file</param>
         internal string GetSynSetDefinition(POS pos, int offset)
         {
-            // set data file to synset location
-            StreamReader dataFile = _posSynSetDataFile[pos];
-            dataFile.DiscardBufferedData();
-            dataFile.BaseStream.Position = offset;
+            ThrowIfDisposed();
 
-            // read synset definition
-            string synSetDefinition = dataFile.ReadLine();
+            lock (_diskAccessLock)
+            {
+                // set data file to synset location
+                StreamReader dataFile = _posSynSetDataFile[pos];
+                dataFile.DiscardBufferedData();
+                dataFile.BaseStream.Position = offset;
 
-            // make sure file positions line up
-            if (int.Parse(synSetDefinition.Substring(0, synSetDefinition.IndexOf(' '))) != offset)
-                throw new Exception("Position mismatch:  passed " + offset + " and got definition line \"" + synSetDefinition + "\"");
+                // read synset definition
+                string synSetDefinition = dataFile.ReadLine();
 
-            return synSetDefinition;
+                // make sure file positions line up
+                if (int.Parse(synSetDefinition.Substring(0, synSetDefinition.IndexOf(' '))) != offset)
+                    throw new InvalidDataException("Position mismatch:  passed " + offset + " and got definition line \"" + synSetDefinition + "\"");
+
+                return synSetDefinition;
+            }
         }
         #endregion
 
@@ -730,6 +754,20 @@ namespace LAIR.ResourceAPIs.WordNet
         /// </summary>
         public void Close()
         {
+            Dispose();
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (_disposed || !disposing)
+                return;
+
             if (_inMemory)
             {
                 // release all in-memory resources
@@ -750,6 +788,14 @@ namespace LAIR.ResourceAPIs.WordNet
 
                 _posSynSetDataFile = null;
             }
+
+            _disposed = true;
+        }
+
+        private void ThrowIfDisposed()
+        {
+            if (_disposed)
+                throw new ObjectDisposedException(GetType().FullName);
         }
     }
 }

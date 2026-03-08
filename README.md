@@ -57,9 +57,15 @@ resources/
 The data files are **not** included in this repository. Download them from
 <https://wordnet.princeton.edu/download/current-version>.
 
-> **Note:** On first run, the engine may rewrite the `index.*` files if they are
-> not pre-sorted. Run once on a local machine before committing data to avoid
-> rewriting files in CI.
+> **Note:** The engine no longer rewrites `index.*` files during normal runtime.
+> Before first use, run the explicit preprocessing step once to create the
+> `.sorted_for_dot_net` marker:
+>
+> ```csharp
+> WordNetEngine.SortIndexFiles(wordNetDirectory);
+> ```
+>
+> If the marker is missing, `WordNetEngine` throws `InvalidOperationException`.
 
 ---
 
@@ -72,6 +78,15 @@ The data files are **not** included in this repository. Download them from
 | `src/WordNet.Tests` | Test project (net48) | MSTest characterization tests |
 
 ---
+
+## Thread safety and lifetime
+
+- `WordNetEngine` now implements `IDisposable`. `Close()` is retained as a
+  compatibility shim and calls `Dispose()`.
+- After disposal, API methods throw `ObjectDisposedException`.
+- Read operations are synchronized internally in disk mode; concurrent reads are
+  supported for typical usage.
+- Do not call `Dispose()` concurrently with active API calls.
 
 ## CI
 

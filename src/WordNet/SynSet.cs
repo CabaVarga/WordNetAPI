@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Globalization;
 using System.Collections.ObjectModel;
+using System.IO;
 
 using LAIR.Collections.Generic;
 
@@ -160,7 +161,7 @@ namespace LAIR.ResourceAPIs.WordNet
             _instantiated = false;
 
             if (_wordNetEngine != null && _wordNetEngine.InMemory)
-                throw new Exception("Don't need to pass a non-null WordNetEngine when using in-memory storage");
+                throw new InvalidOperationException("Don't need to pass a non-null WordNetEngine when using in-memory storage");
 
             // precompute the ID and hash code for efficiency
             _id = _pos + ":" + _offset;
@@ -189,13 +190,13 @@ namespace LAIR.ResourceAPIs.WordNet
         {
             // don't re-instantiate
             if (_instantiated)
-                throw new Exception("Synset has already been instantiated");
+                throw new InvalidOperationException("Synset has already been instantiated");
 
             /* get lexicographer file name...the enumeration lines up precisely with the wordnet spec (see the lexnames file) except that
              * it starts with None, so we need to add 1 to the definition line's value to get the correct file name */
             int lexicographerFileNumber = int.Parse(GetField(definition, 1)) + 1;
             if (lexicographerFileNumber <= 0)
-                throw new Exception("Invalid lexicographer file name number. Should be >= 1.");
+                throw new InvalidDataException("Invalid lexicographer file name number. Should be >= 1.");
 
             _lexicographerFileName = (WordNetEngine.LexicographerFileName)lexicographerFileNumber;
 
@@ -212,7 +213,7 @@ namespace LAIR.ResourceAPIs.WordNet
                 int wordLen = wordEnd - wordStart + 1;
                 string word = definition.Substring(wordStart, wordLen);
                 if (word.Contains(' '))
-                    throw new Exception("Unexpected space in word:  " + word);
+                    throw new InvalidDataException("Unexpected space in word:  " + word);
 
                 _words.Add(word);
 
@@ -223,7 +224,7 @@ namespace LAIR.ResourceAPIs.WordNet
             // get gloss
             _gloss = definition.Substring(definition.IndexOf('|') + 1).Trim();
             if (_gloss.Contains('|'))
-                throw new Exception("Unexpected pipe in gloss");
+                throw new InvalidDataException("Unexpected pipe in gloss");
 
             // get number and start of relations
             int relationCountField = 3 + (_words.Count * 2) + 1;
@@ -265,7 +266,7 @@ namespace LAIR.ResourceAPIs.WordNet
                         targetWordIndex = int.Parse(fieldValue.Substring(2), NumberStyles.HexNumber);
                     }
                     else
-                        throw new Exception();
+                        throw new InvalidOperationException("Unexpected relation field index.");
 
                     relationFieldStart = definition.IndexOf(' ', relationFieldStart + 1) + 1;
                 }
@@ -332,7 +333,7 @@ namespace LAIR.ResourceAPIs.WordNet
         private string GetField(string line, int fieldNum, out int startIndex)
         {
             if (fieldNum < 0)
-                throw new Exception("Invalid field number:  " + fieldNum);
+                throw new ArgumentOutOfRangeException("fieldNum", fieldNum, "Invalid field number.");
 
             // scan fields until we hit the one we want
             int currField = 0;
@@ -360,7 +361,7 @@ namespace LAIR.ResourceAPIs.WordNet
 
                 // if there are no more spaces and we haven't found the field, the caller requested an invalid field
                 if (startIndex == 0)
-                    throw new Exception("Failed to get field number:  " + fieldNum);
+                    throw new InvalidDataException("Failed to get field number:  " + fieldNum);
 
                 ++currField;
             }
@@ -383,7 +384,7 @@ namespace LAIR.ResourceAPIs.WordNet
             else if (pos == "r")
                 relatedPOS = WordNetEngine.POS.Adverb;
             else
-                throw new Exception("Unexpected POS:  " + pos);
+                throw new ArgumentException("Unexpected POS:  " + pos, "pos");
 
             return relatedPOS;
         }
