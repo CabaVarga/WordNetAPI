@@ -11,7 +11,17 @@ on:
 
 jobs:
   restore-build:
-    runs-on: windows-2019
+    name: restore-build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2022
+            allow_failure: false
+          - os: windows-2025
+            allow_failure: true
+    continue-on-error: ${{ matrix.allow_failure }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
