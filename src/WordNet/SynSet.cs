@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +6,6 @@ using System.Globalization;
 using System.Collections.ObjectModel;
 
 using LAIR.Collections.Generic;
-using LAIR.Extensions;
 
 namespace LAIR.ResourceAPIs.WordNet
 {
@@ -285,15 +284,19 @@ namespace LAIR.ResourceAPIs.WordNet
                 // add semantic relation if we have neither a source nor a target word index
                 if (sourceWordIndex == 0 && targetWordIndex == 0)
                 {
-                    _relationSynSets.EnsureContainsKey(relation, typeof(Set<SynSet>));
+                    if (!_relationSynSets.ContainsKey(relation))
+                        _relationSynSets[relation] = new Set<SynSet>();
                     _relationSynSets[relation].Add(relatedSynSet);
                 }
                 // add lexical relation
                 else
                 {
-                    _lexicalRelations.EnsureContainsKey(relation, typeof(Dictionary<SynSet, Dictionary<int, Set<int>>>));
-                    _lexicalRelations[relation].EnsureContainsKey(relatedSynSet, typeof(Dictionary<int, Set<int>>));
-                    _lexicalRelations[relation][relatedSynSet].EnsureContainsKey(sourceWordIndex, typeof(Set<int>));
+                    if (!_lexicalRelations.ContainsKey(relation))
+                        _lexicalRelations[relation] = new Dictionary<SynSet, Dictionary<int, Set<int>>>();
+                    if (!_lexicalRelations[relation].ContainsKey(relatedSynSet))
+                        _lexicalRelations[relation][relatedSynSet] = new Dictionary<int, Set<int>>();
+                    if (!_lexicalRelations[relation][relatedSynSet].ContainsKey(sourceWordIndex))
+                        _lexicalRelations[relation][relatedSynSet][sourceWordIndex] = new Set<int>();
 
                     if (!_lexicalRelations[relation][relatedSynSet][sourceWordIndex].Contains(targetWordIndex))
                         _lexicalRelations[relation][relatedSynSet][sourceWordIndex].Add(targetWordIndex);
@@ -607,7 +610,8 @@ namespace LAIR.ResourceAPIs.WordNet
             Dictionary<WordNetEngine.SynSetRelation, Dictionary<string, Set<string>>> relatedWords = new Dictionary<WordNetEngine.SynSetRelation, Dictionary<string, Set<string>>>();
             foreach (WordNetEngine.SynSetRelation relation in _lexicalRelations.Keys)
             {
-                relatedWords.EnsureContainsKey(relation, typeof(Dictionary<string, Set<string>>));
+                if (!relatedWords.ContainsKey(relation))
+                    relatedWords[relation] = new Dictionary<string, Set<string>>();
 
                 foreach (SynSet relatedSynSet in _lexicalRelations[relation].Keys)
                 {
@@ -619,7 +623,8 @@ namespace LAIR.ResourceAPIs.WordNet
                     {
                         string sourceWord = _words[sourceWordIndex - 1];
 
-                        relatedWords[relation].EnsureContainsKey(sourceWord, typeof(Set<string>), false);
+                        if (!relatedWords[relation].ContainsKey(sourceWord))
+                            relatedWords[relation][sourceWord] = new Set<string>(false);
 
                         foreach (int targetWordIndex in _lexicalRelations[relation][relatedSynSet][sourceWordIndex])
                         {

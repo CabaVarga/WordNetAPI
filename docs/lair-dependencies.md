@@ -1,6 +1,6 @@
-# LAIR Dependency Analysis and Removal Proposal
+# LAIR Dependency Analysis and Removal
 
-Date: 2026-03-07
+Date: 2026-03-07 (updated 2026-03-08)
 
 ## Goal
 
@@ -205,3 +205,47 @@ Main regression vectors:
 - The namespace `LAIR.ResourceAPIs.WordNet` can remain unchanged independently of DLL removal.
 - Current tests already exposed a thread-safety constraint in disk mode; keep test execution non-parallel while refactoring internals.
 - Removing LAIR from core first is enough to decouple future modernization; sample app and tests can follow immediately after.
+
+---
+
+## Dependency Provenance (post-removal record)
+
+**Status: All `LAIR.*` DLL references removed.** Completed 2026-03-08 on `feature/phase-3`.
+
+The three external DLLs (`LAIR.Collections.dll`, `LAIR.Extensions.dll`, `LAIR.IO.dll`) in `lib/` are
+no longer referenced by any project. They remain in the repository for historical reference only and
+can be deleted in a future cleanup commit.
+
+### What replaced them
+
+| Original LAIR type / method | Replacement | Location |
+|---|---|---|
+| `LAIR.Collections.Generic.Set<T>` | Internal `Set<T>` backed by `HashSet<T>` | `src/WordNet/Internal/Set.cs` |
+| `LAIR.IO.BinarySearchTextStream` | Internal byte-level binary search over `FileStream` | `src/WordNet/Internal/BinarySearchTextStream.cs` |
+| `LAIR.Extensions.DictionaryExtensions.EnsureContainsKey` | Explicit `ContainsKey` + assignment | Inlined at each call site |
+| `LAIR.Extensions.StreamReaderExtensions.TryReadLine` | `ReadLine()` null-check pattern | Inlined at each call site |
+| `LAIR.Extensions.StreamReaderExtensions.SetPosition` | `DiscardBufferedData(); BaseStream.Position = 0` | Inlined at each call site |
+
+### Design decisions
+
+- **`Set<T>` stays in namespace `LAIR.Collections.Generic`** so that existing `using` directives
+  and public API signatures (`GetSynSets`, `GetRelatedSynSets`, `AllWords`, `GetLexicallyRelatedWords`)
+  remain source-compatible. A future Phase (A3.2) may migrate the public surface to BCL types
+  (`HashSet<T>`, `IReadOnlyCollection<T>`) as a versioned breaking change.
+- **`BinarySearchTextStream` is `internal`** in the `LAIR.ResourceAPIs.WordNet` namespace (not the
+  LAIR namespace) because it was never part of the public API.
+- **`Set<T>` is `public`** because it appears in public method return types and parameters.
+- The `Set<T>` capacity constructor accepts an `int` for API compatibility but does not forward it
+  to `HashSet<T>` (the `HashSet<T>(int)` constructor is unavailable on the net40 target).
+- The `Set<T>(bool throwExceptionOnDuplicateAdd)` constructor is preserved for compatibility with
+  `SynSet.GetLexicallyRelatedWords` but the flag is not enforced; `HashSet<T>` silently ignores
+  duplicate adds, which matches runtime behavior (no existing code path triggers a duplicate-add
+  exception).
+
+### Validation
+
+- 28/28 characterization tests pass (in-memory and disk-mode paths).
+- Clean build: 0 warnings, 0 errors across `WordNet`, `TestApplication`, and `WordNet.Tests`.
+- No source changes required in `SynSet.cs`, `WordNetEngine.cs`, or `WordNetSimilarityModel.cs` —
+  the `using LAIR.Collections.Generic;` statements resolve to the shim type exported from the
+  WordNet assembly.
