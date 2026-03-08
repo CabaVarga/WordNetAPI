@@ -11,7 +11,7 @@ on:
 
 jobs:
   restore-build:
-    runs-on: windows-latest
+    runs-on: windows-2019
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -20,9 +20,6 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 9.0.300
-
-      - name: Install .NET Framework 4.0.1 targeting pack
-        run: choco install netfx-4.0.1-devpack -y
 
       - name: Show .NET info
         run: dotnet --info
