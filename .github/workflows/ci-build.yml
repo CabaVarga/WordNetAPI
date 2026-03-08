@@ -37,5 +37,19 @@ jobs:
       - name: Restore
         run: dotnet restore src/WordNet.sln
 
+      - name: Install .NET 4.0 reference assemblies
+        shell: pwsh
+        run: |
+          $outDir = Join-Path $env:RUNNER_TEMP 'netfx40-ref'
+          nuget install Microsoft.NETFramework.ReferenceAssemblies.net40 `
+            -Version 1.0.3 `
+            -OutputDirectory $outDir `
+            -NonInteractive `
+            -ExcludeVersion
+          $refPath = Join-Path $outDir `
+            'Microsoft.NETFramework.ReferenceAssemblies.net40' `
+            'build' '.NETFramework' 'v4.0'
+          "CI_NETFX40_PATH=$refPath" | Out-File -FilePath $env:GITHUB_ENV -Append
+
       - name: Build
         run: dotnet build src/WordNet.sln --configuration Release --no-restore
