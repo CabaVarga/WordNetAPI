@@ -57,7 +57,28 @@ Keep the table below updated. One row per phase; update when a phase closes (PR 
 | 0 — Baseline and Guardrails       | 1a       | `4735631` | 0 (build-only) | [#1](https://github.com/CabaVarga/WordNetAPI/pull/1) |
 | 1 — Characterization Tests        | 1b, 2a   | `682abc7` | 26             | [#2](https://github.com/CabaVarga/WordNetAPI/pull/2) |
 | 2 — Runtime Side-Effect Hardening | 2b, 3    | `07c1b68` | 28             | [#3](https://github.com/CabaVarga/WordNetAPI/pull/3) |
-| 3 — Dependency Reproducibility    | 4 →      | —         | 28             | pending |
+| 3 — Dependency Reproducibility    | 4, 5 →   | —         | 28             | pending |
+
+---
+
+## Session 5 — 2026-03-08 · `17c410c` · branch `feature/phase-3`
+
+**Trigger:** Continuation of Phase 3 on `feature/phase-3`; A1 (`LAIR.Extensions` removal) implemented.
+
+**References:** No PR yet · 28 tests at close (local Release config).
+
+**Changes to handoff.md:**
+
+- Date line updated to "session 5".
+- Done list expanded: A1 marked complete with full detail — `using LAIR.Extensions;` removed
+  from both `SynSet.cs` and `WordNetEngine.cs`; 7 `EnsureContainsKey` → `ContainsKey` + `new`;
+  6 `TryReadLine` loops → `ReadLine()` null-check + explicit `Close()`; 1 `SetPosition(0)` →
+  `DiscardBufferedData(); BaseStream.Position = 0`. 28/28 tests, 0 warnings, 0 errors.
+- Recommended next steps updated: A2 is now first (implement `IndexBinarySearchReader`), then
+  A3.1, then LAIR ref removal.
+- Quick restart prompt updated: A1 described as complete; directs to continue with A2.
+
+**Complications / deviations:** None.
 
 ---
 
