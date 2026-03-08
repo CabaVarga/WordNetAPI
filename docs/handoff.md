@@ -1,11 +1,11 @@
 # WordNetAPI Handoff
 
-Date: 2026-03-08 (updated 2026-03-08, session 10)
+Date: 2026-03-08 (updated 2026-03-08, session 12)
 
 ## Current working context
 
 - Local repo: `D:\WordNetAPI-fork`
-- Active branch: `feature/phase-4`
+- Active branch: `feature/phase-5`
 - Fork repo: `https://github.com/CabaVarga/WordNetAPI.git`
 - Upstream repo: `https://github.com/zacg/WordNetAPI.git`
 - `gh` CLI is installed/authenticated and default repo is set to `CabaVarga/WordNetAPI`.
@@ -49,53 +49,61 @@ Date: 2026-03-08 (updated 2026-03-08, session 10)
 - 28/28 tests pass; 0 warnings, 0 errors across all projects.
 - CI green on both runners: runs `22825302479` / `22825311015`.
 
-## Current status (Phase 4 — complete, pending PR on `feature/phase-4`)
+### Phase 4 — complete (merged to `master` via PR #5)
+
+- `WordNetEngine` now implements `IDisposable`; `Close()` remains as compatibility shim.
+- Use-after-dispose guards added for core API calls (`AllWords`, `GetSynSet`, `GetSynSets`, `GetMostCommonSynSet`).
+- Disk-mode shared stream access synchronized with locking around shared readers/search streams.
+- Broad exceptions replaced with typed exceptions in `WordNetEngine`, `SynSet`, `WordNetSimilarityModel`, and the WinForms harness validation path.
+- Robustness tests added in `RobustnessTests` and argument-contract tests expanded in `SimilarityModelTests`.
+- Test suite increased to 36/36 passing tests.
+- CI green on both runners for PR #5: runs `22825895115` / `22825900637`.
+
+## Current status (Phase 5 — implementation complete locally, PR pending on `feature/phase-5`)
 
 ### Goal
 
-Improve API robustness and lifetime management. Consumers should be able to safely and predictably manage engine lifetime. Error conditions should be clearer and more actionable.
+Migrate the legacy project files to SDK-style while preserving behavior and compatibility. Keep the characterization suite as the safety net and avoid public API changes during migration.
 
 ### Scope (from `docs/modernization-plan.md`)
 
 | Task | Risk |
 |---|---|
-| Implement `IDisposable` on `WordNetEngine` (keep `Close()` as compatibility shim) | Low–medium |
-| Add defensive argument validation and typed exceptions where currently broad `Exception` is thrown | Low |
-| Audit disk-mode shared stream access and document single-threaded requirement or add locking | Medium |
-| Add tests for disposal behavior and failure contracts | Low |
+| Convert legacy `.csproj` files to SDK-style (`WordNet`, `TestApplication`) | Medium |
+| Preserve framework compatibility (`net48`) during migration step | Medium |
+| Keep CI/test matrix stable while project format changes | Low–medium |
+| Validate no behavior regressions with full characterization suite | Low |
 
 ### Done
 
-- [x] Branch `feature/phase-4` created from updated `master` (post PR #4 merge).
-- [x] 28/28 tests confirmed passing on `master`.
-- [x] `WordNetEngine` now implements `IDisposable`; `Close()` is a compatibility shim that calls `Dispose()`.
-- [x] Use-after-dispose guards added for core API calls (`AllWords`, `GetSynSet`, `GetSynSets`, `GetMostCommonSynSet`).
-- [x] Disk-mode shared stream access audited and synchronized with a lock around shared readers/search streams.
-- [x] Broad exceptions replaced with typed exceptions in `WordNetEngine`, `SynSet`, `WordNetSimilarityModel`, and the WinForms harness validation path.
-- [x] Robustness tests added:
-  - `RobustnessTests`: double-dispose, use-after-close, POS contract, and concurrent disk-read regression.
-  - `SimilarityModelTests`: null argument contracts for model constructor and overloads.
-- [x] Test suite now passes 36/36 locally (`dotnet test src/WordNet.Tests/WordNet.Tests.csproj`).
-- [x] `README.md` updated with the explicit preprocessing contract (`SortIndexFiles`) and thread-safety/lifetime guidance.
+- [x] Phase 4 PR [#5](https://github.com/CabaVarga/WordNetAPI/pull/5) merged to `master`.
+- [x] Branch `feature/phase-5` created from updated `master`.
+- [x] Baseline status on branch-open confirmed: working tree clean, 36/36 tests passing at prior phase close.
+- [x] `src/WordNet/WordNet.csproj` migrated to SDK-style targeting `net48` (assembly identity preserved; legacy assembly-info generation disabled).
+- [x] `src/TestApplication/TestApplication.csproj` migrated to SDK-style targeting `net48` with WinForms enabled and designer/resource metadata preserved.
+- [x] `src/WordNet.sln` legacy x64/x86 configuration noise removed; solution now keeps clean Any CPU Debug/Release mappings.
+- [x] `.github/workflows/ci-build.yml` net40 reference-assembly install step removed after framework migration.
+- [x] `Directory.Build.props` net40 `FrameworkPathOverride` workaround retired.
+- [x] Local validation passed after migration: `dotnet restore`, `dotnet build -c Release`, `dotnet test -c Release --no-build` (36/36 passing, 0 warnings, 0 errors).
 
 ### Pending
 
-- [ ] Open Phase 4 PR (no push until instructed).
+- [ ] Open Phase 5 PR when instructed (do not push until explicitly requested).
 
 ## Recommended immediate next steps
 
-1. Review Phase 4 commits (`73587e1`, `b217675`) and verify PR scope.
-2. Open Phase 4 PR when instructed.
-3. Merge PR, then begin Phase 5 planning.
+1. Keep branch unpushed until instructed; then push `feature/phase-5` and open the Phase 5 PR.
+2. Run CI on the Phase 5 PR and confirm both `windows-2022` (required) and `windows-2025` (canary) outcomes.
+3. After merge, create the next phase branch and add the branch-open archive entry as first/second commit.
 
 ## Quick restart prompt (for new chat)
 
 ```text
-Use D:\WordNetAPI-fork on branch feature/phase-4.
+Use D:\WordNetAPI-fork on branch feature/phase-5.
 Read docs/handoff.md, docs/modernization-plan.md.
-Phases 0–3 are merged to master. Phase 4 is active — working tree is clean.
+Phases 0–4 are merged to master. Phase 5 implementation is complete locally — PR is pending.
 36/36 tests pass. Do not push until instructed.
-Phase 4 implementation is complete on branch `feature/phase-4`; PR is pending.
+Phase 4 is merged via PR #5. Prepare/open Phase 5 PR from `feature/phase-5` only when instructed.
 
 WORKFLOW REMINDER: When opening a new branch, add a new entry to docs/handoff-archive.md
 as the first or second commit, before any implementation work. Record the trigger, references

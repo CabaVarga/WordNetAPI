@@ -58,7 +58,52 @@ Keep the table below updated. One row per phase; update when a phase closes (PR 
 | 1 — Characterization Tests        | 1b, 2a   | `682abc7` | 26             | [#2](https://github.com/CabaVarga/WordNetAPI/pull/2) |
 | 2 — Runtime Side-Effect Hardening | 2b, 3    | `07c1b68` | 28             | [#3](https://github.com/CabaVarga/WordNetAPI/pull/3) |
 | 3 — Dependency Reproducibility    | 4, 5, 6, 7 | `2bd520b` | 28             | [#4](https://github.com/CabaVarga/WordNetAPI/pull/4) |
-| 4 — API Robustness                | 8, 9, 10 → | —         | 36             | pending |
+| 4 — API Robustness                | 8, 9, 10   | `ef8343f` | 36             | [#5](https://github.com/CabaVarga/WordNetAPI/pull/5) |
+| 5 — Project System Migration      | 11, 12     | —         | 36             | pending |
+
+---
+
+## Session 12 — 2026-03-08 · `ef8343f` · branch `feature/phase-5`
+
+**Trigger:** Approved Phase 5 execution plan to begin SDK-style migration work on `feature/phase-5`.
+
+**References:** PR pending · latest merged context PR [#5](https://github.com/CabaVarga/WordNetAPI/pull/5) · no new CI run yet · 36 tests at session close (local Release run).
+
+**Changes to handoff.md:**
+
+- Date line updated to "session 12".
+- Current status promoted to "Phase 5 implementation complete locally, PR pending".
+- Done list expanded with concrete migration outcomes:
+  - SDK-style conversion of `WordNet.csproj` and `TestApplication.csproj` to `net48`.
+  - WinForms/resource-designer metadata retained for the harness project.
+  - `WordNet.sln` configuration cleanup (Any CPU only).
+  - net40-only CI/workaround removal (`ci-build.yml`, `Directory.Build.props`).
+  - local validation result recorded: restore/build/test passed with 36/36 tests.
+- Pending reduced to a single action: open/push PR only when instructed.
+- Recommended next steps shifted from implementation sequencing to PR/CI and next-phase branch handoff.
+
+**Complications / deviations:**
+
+- None.
+
+---
+
+## Session 11 — 2026-03-08 · `ef8343f` · branch `feature/phase-5`
+
+**Trigger:** Phase 4 PR merged; context moved from `feature/phase-4` to newly created `feature/phase-5`.
+
+**References:** PR [#5](https://github.com/CabaVarga/WordNetAPI/pull/5) merged · CI runs `22825895115` / `22825900637` (both runners green) · 36 tests at branch-open baseline.
+
+**Changes to handoff.md:**
+
+- Date line updated to "session 11".
+- Active branch switched from `feature/phase-4` to `feature/phase-5`.
+- Phase 4 moved from "current status" into phase history as merged (PR #5) with CI references.
+- Current status reset to Phase 5 goal/scope (SDK-style project migration) with a fresh pending checklist.
+- Recommended next steps changed from PR wrap-up to Phase 5 migration sequencing.
+- Quick restart prompt updated for `feature/phase-5`, with Phase 4 recorded as merged.
+
+**Complications / deviations:** None.
 
 ---
 

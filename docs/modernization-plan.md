@@ -3,7 +3,7 @@
 Date: 2026-03-07  
 Source: `docs/quick-repo-audit.md`, `docs/lair-dependencies.md`
 
-## Status snapshot - 2026-03-08 (updated 2026-03-08, session 10)
+## Status snapshot - 2026-03-08 (updated 2026-03-08, session 11)
 
 | Phase | Status |
 |---|---|
@@ -11,8 +11,8 @@ Source: `docs/quick-repo-audit.md`, `docs/lair-dependencies.md`
 | Phase 1 — Characterization Tests | ✓ Complete (merged PR #2) |
 | Phase 2 — Runtime Side-Effect Hardening | ✓ Complete (merged PR #3) |
 | Phase 3 — Dependency Reproducibility / LAIR Extraction | ✓ Complete (merged PR #4) |
-| Phase 4 — API Robustness | ✅ Complete (pending PR from `feature/phase-4`) |
-| Phase 5 — Project System Migration | Pending |
+| Phase 4 — API Robustness | ✓ Complete (merged PR #5) |
+| Phase 5 — Project System Migration | Active (`feature/phase-5`) |
 | Phase 6 — Forward Port | Optional |
 
 ### Completed findings and decisions
@@ -108,7 +108,7 @@ Stabilized `LAIR.*` dependency story by inlining/replacing the minimal needed fu
 - 28/28 characterization tests pass in CI on both runners.
 - No hidden GAC/local-machine assumptions.
 
-## Phase 4 - API Robustness and Lifetime Management ✅ COMPLETE (pending PR from `feature/phase-4`)
+## Phase 4 - API Robustness and Lifetime Management ✓ COMPLETE (merged PR #5, 2026-03-08)
 
 - [x] Implement `IDisposable` on `WordNetEngine` (keep `Close()` as compatibility shim).
 - [x] Add defensive argument validation and typed exceptions where currently broad `Exception` is thrown.
@@ -117,13 +117,14 @@ Stabilized `LAIR.*` dependency story by inlining/replacing the minimal needed fu
 - [x] Add similarity-model argument contract tests (constructor and both overloads).
 - [x] Test suite expanded from 28 to 36 passing tests.
 - [x] README updated with explicit preprocessing and thread-safety/lifetime contract notes.
+- [x] Merged via [PR #5](https://github.com/CabaVarga/WordNetAPI/pull/5); CI green on runs `22825895115` / `22825900637`.
 
 **Acceptance criteria**
 
 - Consumers can safely and predictably manage engine lifetime.
 - Error conditions are clearer and more actionable.
 
-## Phase 5 - Project System Migration (3-5 days)
+## Phase 5 - Project System Migration (3-5 days) - ACTIVE
 
 - [ ] Convert legacy csproj files to SDK-style.
 - [ ] Pick an intermediate target (`net48`) as compatibility step.
