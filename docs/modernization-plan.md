@@ -3,15 +3,15 @@
 Date: 2026-03-07  
 Source: `docs/quick-repo-audit.md`, `docs/lair-dependencies.md`
 
-## Status snapshot - 2026-03-08 (updated 2026-03-08)
+## Status snapshot - 2026-03-08 (updated 2026-03-08, session 4)
 
 | Phase | Status |
 |---|---|
 | Phase 0 — Baseline and Guardrails | ✓ Complete (merged PR #1) |
 | Phase 1 — Characterization Tests | ✓ Complete (merged PR #2) |
-| Phase 2 — Runtime Side-Effect Hardening | ✓ Complete (`feature/phase-2`, pending PR) |
-| Phase 3 — Dependency Reproducibility | Pending |
-| Phase 3A — LAIR Extraction | Pending |
+| Phase 2 — Runtime Side-Effect Hardening | ✓ Complete (merged PR #3) |
+| Phase 3 — Dependency Reproducibility | 🔄 In progress (`feature/phase-3`) |
+| Phase 3A — LAIR Extraction | 🔄 In progress (`feature/phase-3`, overlaps Phase 3) |
 | Phase 4 — API Robustness | Pending |
 | Phase 5 — Project System Migration | Pending |
 | Phase 6 — Forward Port | Optional |
@@ -73,7 +73,7 @@ Source: `docs/quick-repo-audit.md`, `docs/lair-dependencies.md`
 - 26 deterministic tests pass in CI (exceeds 15–25 target).
 - Tests pin current behavior for both common and edge-case inputs.
 
-## Phase 2 - Runtime Side-Effect Hardening ✓ COMPLETE on `feature/phase-2`
+## Phase 2 - Runtime Side-Effect Hardening ✓ COMPLETE (merged PR #3, 2026-03-08)
 
 Address index-file mutation in `WordNetEngine` constructor.
 
@@ -83,47 +83,41 @@ Address index-file mutation in `WordNetEngine` constructor.
 - [x] Add tests for:
   - [x] Sorted dataset path — engine constructs without modifying any index file (`Constructor_SortedDirectory_DoesNotModifyIndexFiles`).
   - [x] Unsorted dataset path — constructor throws `InvalidOperationException` (`Constructor_UnsortedDirectory_ThrowsInvalidOperationException`).
-- [x] 28/28 tests pass.
+- [x] `.gitattributes` added: `resources/data.*` and `resources/index.*` marked as binary (fixes CRLF corruption of byte offsets on Windows CI).
+- [x] 28/28 tests pass in CI on both runners.
 
 **Acceptance criteria met:**
 
 - Normal runtime reads data only; no file rewrite occurs.
 - Behavior is explicit and documented.
 
-## Phase 3 - Dependency Reproducibility (2-3 days)
+## Phase 3 + 3A - Dependency Reproducibility / LAIR Extraction ← ACTIVE on `feature/phase-3`
 
-Stabilize `LAIR.*` dependency story.
+Stabilize `LAIR.*` dependency story by inlining/replacing the minimal needed functionality (Option A from `docs/lair-dependencies.md`). Phases 3 and 3A are being executed together on the same branch.
 
-- [ ] Choose one strategy:
-  - [ ] Commit required binaries in a controlled location and validate paths.
-  - [ ] Replace with package-based references.
-  - [ ] Inline/replace minimal needed functionality to remove external dependency.
-- [ ] Ensure clean clone build works without machine-specific state.
-- [ ] Add dependency provenance note (where dependencies come from and why).
+**Chosen strategy: Option A — internal compatibility layer, then swap internals.**
 
-**Acceptance criteria**
-
-- Build succeeds from a clean checkout using documented steps only.
-- No hidden GAC/local-machine assumptions.
-
-## Phase 3A - LAIR Extraction Track (3-6 days, can overlap Phases 1-4)
-
-Translate findings from `docs/lair-dependencies.md` into executable tasks for removing `LAIR.*` from core library code with controlled risk.
-
-- [ ] Remove `LAIR.Extensions` usage from `WordNet` code paths:
-  - [ ] Replace `EnsureContainsKey(...)` with explicit dictionary initialization.
-  - [ ] Replace `TryReadLine(...)` with `ReadLine()` null-check loops.
-  - [ ] Replace `SetPosition(...)` with buffered stream reset pattern.
-- [ ] Replace `LAIR.IO.BinarySearchTextStream` in disk-mode index lookup with internal helper.
-- [ ] Introduce an internal `Set<T>` compatibility shim to preserve current behavior (`AddRange`, read-only semantics, constructors in use).
-- [ ] Remove `LAIR.*` references from `WordNet.csproj` once replacements are in place.
-- [ ] Validate changes with characterization tests before touching `TestApplication` and test-project references.
+- [ ] **A1 — Remove `LAIR.Extensions`** (low risk):
+  - [ ] Replace `EnsureContainsKey(...)` (7 sites in `SynSet.cs`, 1 in `WordNetEngine.cs`) with explicit `ContainsKey` + assignment.
+  - [ ] Replace `TryReadLine(...)` loops with `ReadLine()` null-check loops (multiple sites in `WordNetEngine.cs`).
+  - [ ] Replace `SetPosition(0)` with `DiscardBufferedData(); BaseStream.Position = 0` (`WordNetEngine.AllWords` disk branch).
+- [ ] **A2 — Replace `LAIR.IO.BinarySearchTextStream`** (medium risk):
+  - [ ] Implement internal `IndexBinarySearchReader` (or equivalent) in `src/WordNet/`.
+  - [ ] Swap disk-mode init block in `WordNetEngine` constructor.
+- [ ] **A3.1 — Introduce internal `Set<T>` shim** (medium-high risk):
+  - [ ] Add `src/WordNet/Internal/Set.cs` preserving used members: `AddRange`, `IsReadOnly` setter, `new Set<T>()`, `new Set<T>(capacity)`, `new Set<T>(ICollection<T>)`.
+  - [ ] Swap all usages in `SynSet.cs` and `WordNetEngine.cs`.
+- [ ] Remove `LAIR.*` references from `WordNet.csproj`; confirm clean build.
+- [ ] Remove `LAIR.*` references from `TestApplication.csproj` and `WordNet.Tests.csproj`.
+- [ ] Validate with 28/28 characterization tests (both in-memory and disk-mode paths).
+- [ ] Add dependency provenance note to docs.
 
 **Acceptance criteria**
 
 - `src/WordNet/WordNet.csproj` has no `LAIR.*` references.
-- Characterization tests pass for both in-memory and disk-mode representative cases.
-- Public behavior remains stable for existing consumer-facing flows.
+- Build succeeds from a clean checkout using documented steps only.
+- 28/28 characterization tests pass in CI on both runners.
+- No hidden GAC/local-machine assumptions.
 
 ## Phase 4 - API Robustness and Lifetime Management (3-4 days)
 
@@ -176,6 +170,6 @@ Only after previous phases are green.
 
 ## Suggested Next 3 Tasks (Start Here)
 
-1. **[Phase 2 — complete]** Audit `WordNetEngine` constructor: sorting extracted to `SortIndexFiles()`, fail-fast guard added, 2 new tests, 28/28 passing.
-2. Decide dependency strategy for `LAIR.*` and document the chosen approach (Phase 3).
-3. Begin LAIR extraction with `LAIR.Extensions` replacements — lowest risk, can overlap Phase 2 (Phase 3A).
+1. **[Phase 3 — active]** A1: Remove `LAIR.Extensions` from `WordNetEngine.cs` and `SynSet.cs` — mechanical substitutions, no behavior change.
+2. A2: Implement `IndexBinarySearchReader` and swap `BinarySearchTextStream` in the disk-mode constructor block.
+3. A3.1: Add internal `Set<T>` shim and swap all usages; then drop `LAIR.*` from `WordNet.csproj`.
