@@ -1,0 +1,4 @@
+# WordNet data and index files use exact byte offsets embedded in the data.
+# Any line-ending conversion shifts those offsets and corrupts binary search.
+resources/data.*    binary
+resources/index.*   binary

@@ -107,25 +107,17 @@ From here forward, work in `D:\WordNetAPI-fork`.
 
 ## Context and conversation transfer
 
-If you open a new Cursor chat/workspace, conversation context will not always carry over automatically. Use this handoff set to recover context quickly:
+> **This section describes the state at the time the fork migration was performed (2026-03-08, Phase 0).**
+> For the current working context and restart prompt, always refer to `docs/handoff.md`.
 
 - Working folder: `D:\WordNetAPI-fork`
-- Branch: `feature/phase-0`
 - Fork remote: `origin` -> `https://github.com/CabaVarga/WordNetAPI.git`
 - Upstream remote: `upstream` -> `https://github.com/zacg/WordNetAPI.git`
 - Core planning docs:
+  - `docs/handoff.md` ← start here for current state
   - `docs/modernization-plan.md`
   - `docs/lair-dependencies.md`
   - `docs/fork-plan.md`
-  - `docs/handoff.md`
-
-Suggested first prompt in a new chat:
-
-```text
-Start in D:\WordNetAPI-fork on branch feature/phase-0.
-Read docs/handoff.md, docs/modernization-plan.md, and docs/lair-dependencies.md.
-Continue from the next pending Phase 0 task.
-```
 
 ## Step 6 - Run CI from the fork
 

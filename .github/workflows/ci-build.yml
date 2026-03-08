@@ -53,3 +53,6 @@ jobs:
 
       - name: Build
         run: dotnet build src/WordNet.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test src/WordNet.sln --configuration Release --no-build --logger "console;verbosity=normal"

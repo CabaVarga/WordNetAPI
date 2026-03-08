@@ -1,11 +1,11 @@
 # WordNetAPI Handoff
 
-Date: 2026-03-08
+Date: 2026-03-08 (updated 2026-03-08, session 3)
 
 ## Current working context
 
 - Local repo: `D:\WordNetAPI-fork`
-- Active branch: `feature/phase-1`
+- Active branch: `feature/phase-2`
 - Fork repo: `https://github.com/CabaVarga/WordNetAPI.git`
 - Upstream repo: `https://github.com/zacg/WordNetAPI.git`
 - `gh` CLI is installed/authenticated and default repo is set to `CabaVarga/WordNetAPI`.
@@ -23,48 +23,50 @@ Date: 2026-03-08
 - Full modernization docs suite added (`docs/`).
 - CI green on both runners: run `22820942946`.
 
-## Current status (Phase 1)
+### Phase 1 — complete (merged to `master` via PR #2)
+
+- 26 passing tests across 4 files: `Test1.cs`, `RelationTraversalTests.cs`, `SimilarityModelTests.cs`, `EdgeCaseTests.cs`.
+  - Relation traversal: hypernym/hyponym counts, pinned direct hypernym IDs, recursive traversal to entity root, synset words/gloss.
+  - Similarity model: self-similarity=1, dog–cat > dog–car (WuPalmer max), cross-POS returns 0, average strategy bounds.
+  - Edge cases: empty string, adjective/adverb POS, unknown word, round-trip by ID, high-polysemy verb, POS-unrestricted search.
+- `dotnet test` step added to `.github/workflows/ci-build.yml` (Release config, `--no-build`, after Build).
+- Shared `TestHelpers.FindResourcesDirectory()` helper factored out of `Test1.cs`.
+- CI green on both runners.
+
+## Current status (Phase 2 — complete, pending PR)
+
+### Goal
+
+Remove the implicit index-file mutation that occurs in the `WordNetEngine` constructor. Normal runtime must read data only; sorting must become an explicit preprocessing step.
 
 ### Done
 
-- [x] `WordNet.Tests` project exists and builds (`net48`, MSTest).
-- [x] Test fixture (`ClassInitialize`) loads `WordNetEngine` in in-memory mode from `resources/`.
-- [x] 5 initial tests in `Test1.cs`:
-  - `GetSynSets_DogNoun_ReturnsExpectedIDs` — pins all synset IDs for "dog" noun.
-  - `GetMostCommonSynSet_DogNoun_ReturnsExpectedID` — pins most-common synset.
-  - `GetMostCommonSynSet_RunVerb_ReturnsExpectedID` — pins most-common synset for a verb.
-  - `GetSynSets_NormalizesCaseAndSpaces` — verifies "new york" / "New York" equivalence.
-  - `GetSynSets_UnknownWord_ReturnsEmptySet` — verifies unknown words return empty.
-
-### Pending
-
-- [ ] Verify tests pass locally against the real `resources/` data (requires WordNet 3.1 data files).
-- [ ] Expand to 15–25 tests covering: synset relation traversal, similarity model representative cases, edge cases.
-- [ ] Add `dotnet test` step to the CI workflow.
-- [ ] Snapshot canonical outputs for regression detection.
+- [x] Branch `feature/phase-2` created from updated `master` (post PR #2 merge).
+- [x] All Phase 1 carry-overs committed (commit `682abc7`) — working tree is clean.
+- [x] 26/26 tests confirmed passing before Phase 2 work began.
+- [x] Phase 2 implementation complete:
+  - `src/WordNet/WordNetEngine.cs` — extracted sort block into `public static SortIndexFiles(string wordNetDirectory)`; constructor now throws `InvalidOperationException` when `.sorted_for_dot_net` marker is absent.
+  - `src/WordNet.Tests/PreprocessingTests.cs` — 2 new tests: `Constructor_SortedDirectory_DoesNotModifyIndexFiles` and `Constructor_UnsortedDirectory_ThrowsInvalidOperationException`.
+  - Docs updated: `handoff.md`, `modernization-plan.md`.
+- [x] 28/28 tests pass locally (Release config).
+- [ ] PR not yet created (do not push until instructed).
 
 ## Recommended immediate next steps
 
-1. **Run existing tests locally** to confirm the 5 tests in `Test1.cs` pass against your `resources/` directory.
-   ```powershell
-   dotnet test src/WordNet.sln --configuration Debug
-   ```
-2. **Expand test coverage** — add tests for:
-   - Synset relation traversal (`GetRelatedSynSets`, hypernyms/hyponyms).
-   - `WordNetSimilarityModel` (pick 2–3 representative word pairs with known expected scores).
-   - Boundary cases: empty string, POS with no entries, very common word.
-3. **Wire `dotnet test` into CI** once the local suite is stable (add a `test` step after `build` in `ci-build.yml`).
+1. **Open PR #3** from `feature/phase-2` → `master` when instructed.
+2. **Phase 3** — decide `LAIR.*` dependency strategy (commit binaries, replace with NuGet, or inline).
+3. **Phase 3A** — begin LAIR extraction with `LAIR.Extensions` replacements (lowest risk).
 
-See `docs/modernization-plan.md` Phase 1 for the full checklist and acceptance criteria.
+See `docs/modernization-plan.md` for the full phase checklist.
 
 ## Quick restart prompt (for new chat)
 
 ```text
-Use D:\WordNetAPI-fork on branch feature/phase-1.
-Read docs/handoff.md, docs/modernization-plan.md, and docs/lair-dependencies.md.
-Phase 0 is merged to master. Phase 1 is in progress.
-WordNet.Tests already has 5 smoke tests in src/WordNet.Tests/Test1.cs.
-First, run `dotnet test src/WordNet.sln` locally and confirm all 5 tests pass.
-Then expand coverage to 15-25 tests (relation traversal, similarity model, edge cases)
-and add a dotnet test step to .github/workflows/ci-build.yml.
+Use D:\WordNetAPI-fork on branch feature/phase-2.
+Read docs/handoff.md and docs/modernization-plan.md.
+Phases 0 and 1 are merged to master. Phase 2 is complete (not yet PR'd).
+28/28 tests pass. Do not push until instructed.
+Phase 2 summary: WordNetEngine.SortIndexFiles() extracted; constructor now throws InvalidOperationException
+if .sorted_for_dot_net marker is absent; PreprocessingTests.cs adds 2 new tests covering both paths.
+Next: open PR #3 when instructed, then start Phase 3 (LAIR dependency strategy).
 ```

@@ -52,13 +52,15 @@ Impact:
 - Builds can succeed/fail depending on machine state (GAC/local environment/previous artifacts)
 - Onboarding and CI reproducibility risk is high
 
-### 3) No automated test project or CI test signal (High)
+### 3) No automated test project or CI test signal (High) — ✓ RESOLVED (Phase 1, PR #2)
 
 No unit/integration test project detected; validation is primarily a manual WinForms test harness (`TestApplication`).  
 Impact:
 
 - Refactor/upgrade risk is high
 - Behavioral regressions are likely during modernization
+
+**Resolution:** `src/WordNet.Tests` (SDK-style, `net48`, MSTest) added with 26 characterization tests covering synset retrieval, relation traversal, similarity model, and edge cases. `dotnet test` step wired into CI; all 26 tests pass on `windows-2022` and `windows-2025`.
 
 ### 4) Legacy project system and framework target (Medium)
 
@@ -95,14 +97,14 @@ Impact:
 
 ## Quick Wins (1-2 days)
 
-1. Replace missing ruleset references or add the expected `AllRules.ruleset` file.
-2. Add a small SDK-style test project (even if production code remains legacy) with characterization tests for:
+1. ✓ Replace missing ruleset references or add the expected `AllRules.ruleset` file. *(done — Phase 0)*
+2. ✓ Add a small SDK-style test project (even if production code remains legacy) with characterization tests for: *(done — Phase 1)*
    - `GetSynSets`
    - `GetMostCommonSynSet`
    - Synset relation traversal
    - Similarity calculations
 3. Make sample-app data path configurable (app config, env var, or file picker).
-4. Add a short contributor doc for required data files and dependency expectations.
+4. ✓ Add a short contributor doc for required data files and dependency expectations. *(done — Phase 0, `README.md`)*
 
 ## Recommended Modernization Sequence
 
