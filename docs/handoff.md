@@ -1,6 +1,6 @@
 # WordNetAPI Handoff
 
-Date: 2026-03-08 (updated 2026-03-08, session 8)
+Date: 2026-03-08 (updated 2026-03-08, session 9)
 
 ## Current working context
 
@@ -68,19 +68,26 @@ Improve API robustness and lifetime management. Consumers should be able to safe
 
 - [x] Branch `feature/phase-4` created from updated `master` (post PR #4 merge).
 - [x] 28/28 tests confirmed passing on `master`.
+- [x] `WordNetEngine` now implements `IDisposable`; `Close()` is a compatibility shim that calls `Dispose()`.
+- [x] Use-after-dispose guards added for core API calls (`AllWords`, `GetSynSet`, `GetSynSets`, `GetMostCommonSynSet`).
+- [x] Disk-mode shared stream access audited and synchronized with a lock around shared readers/search streams.
+- [x] Broad exceptions replaced with typed exceptions in `WordNetEngine`, `SynSet`, `WordNetSimilarityModel`, and the WinForms harness validation path.
+- [x] Robustness tests added:
+  - `RobustnessTests`: double-dispose, use-after-close, POS contract, and concurrent disk-read regression.
+  - `SimilarityModelTests`: null argument contracts for model constructor and overloads.
+- [x] Test suite now passes 36/36 locally (`dotnet test src/WordNet.Tests/WordNet.Tests.csproj`).
 
 ### Pending
 
-- [ ] Implement `IDisposable` on `WordNetEngine`; wire `Close()` to call `Dispose()`.
-- [ ] Replace broad `throw new Exception(...)` with typed exceptions (`ArgumentException`, `InvalidOperationException`, `FormatException`, etc.) across `SynSet.cs` and `WordNetEngine.cs`.
-- [ ] Audit disk-mode stream access for thread safety; document or add locking.
-- [ ] Add tests for disposal (double-dispose, use-after-dispose) and typed exception contracts.
+- [ ] Expand concurrency coverage beyond repeated noun lookups (e.g., mixed POS and multi-method parallel reads).
+- [ ] Decide and document whether `WordNetEngine` should remain "thread-safe for reads only" as a supported contract.
+- [ ] Open Phase 4 PR once docs are fully synchronized.
 
 ## Recommended immediate next steps
 
-1. Audit `WordNetEngine.cs` and `SynSet.cs` for all `throw new Exception(...)` sites — catalog them.
-2. Implement `IDisposable` on `WordNetEngine`; add disposal tests.
-3. Replace broad exceptions with typed ones; add contract tests.
+1. Update `docs/modernization-plan.md` and `docs/handoff-archive.md` with Phase 4 progress snapshot.
+2. Add one more stress-oriented thread-safety test that exercises `AllWords` and `GetSynSet` concurrently.
+3. Prepare/open the Phase 4 PR when instructed.
 
 ## Quick restart prompt (for new chat)
 
@@ -88,7 +95,7 @@ Improve API robustness and lifetime management. Consumers should be able to safe
 Use D:\WordNetAPI-fork on branch feature/phase-4.
 Read docs/handoff.md, docs/modernization-plan.md.
 Phases 0–3 are merged to master. Phase 4 is active — working tree is clean.
-28/28 tests pass. Do not push until instructed.
+36/36 tests pass. Do not push until instructed.
 Phase 4 goal: API robustness — IDisposable, typed exceptions, thread-safety audit.
 
 WORKFLOW REMINDER: When opening a new branch, add a new entry to docs/handoff-archive.md

@@ -57,4 +57,43 @@ public sealed class RobustnessTests
 
         Assert.AreEqual(0, failures, "Concurrent disk reads returned unexpected empty results.");
     }
+
+    [TestMethod]
+    public void DiskMode_AllWordsAndGetSynSet_ConcurrentReads_DoNotFail()
+    {
+        string resourcesPath = TestHelpers.FindResourcesDirectory();
+        using WordNetEngine engine = new WordNetEngine(resourcesPath, false);
+
+        Exception? backgroundFailure = null;
+        Task allWordsTask = Task.Run(() =>
+        {
+            try
+            {
+                for (int i = 0; i < 8; i++)
+                {
+                    int totalWords = 0;
+                    foreach (var kv in engine.AllWords)
+                        totalWords += kv.Value.Count;
+
+                    if (totalWords <= 0)
+                        throw new InvalidOperationException("AllWords returned no content.");
+                }
+            }
+            catch (Exception ex)
+            {
+                backgroundFailure = ex;
+            }
+        });
+
+        for (int i = 0; i < 64; i++)
+        {
+            SynSet synset = engine.GetSynSet("Noun:2086723");
+            if (synset.ID != "Noun:2086723")
+                Assert.Fail("Unexpected synset ID returned during concurrent reads.");
+        }
+
+        allWordsTask.Wait();
+        if (backgroundFailure != null)
+            Assert.Fail("Concurrent all-words/read operations failed: " + backgroundFailure);
+    }
 }

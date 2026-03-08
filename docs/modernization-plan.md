@@ -3,7 +3,7 @@
 Date: 2026-03-07  
 Source: `docs/quick-repo-audit.md`, `docs/lair-dependencies.md`
 
-## Status snapshot - 2026-03-08 (updated 2026-03-08, session 8)
+## Status snapshot - 2026-03-08 (updated 2026-03-08, session 9)
 
 | Phase | Status |
 |---|---|
@@ -110,10 +110,12 @@ Stabilized `LAIR.*` dependency story by inlining/replacing the minimal needed fu
 
 ## Phase 4 - API Robustness and Lifetime Management ← ACTIVE on `feature/phase-4`
 
-- [ ] Implement `IDisposable` on `WordNetEngine` (keep `Close()` as compatibility shim).
-- [ ] Add defensive argument validation and typed exceptions where currently broad `Exception` is thrown.
-- [ ] Audit disk-mode shared stream access and document single-threaded requirement or add locking.
-- [ ] Add tests for disposal behavior and failure contracts.
+- [x] Implement `IDisposable` on `WordNetEngine` (keep `Close()` as compatibility shim).
+- [x] Add defensive argument validation and typed exceptions where currently broad `Exception` is thrown.
+- [x] Audit disk-mode shared stream access and add locking around shared disk readers/search streams.
+- [x] Add tests for disposal behavior and failure contracts.
+- [x] Add similarity-model argument contract tests (constructor and both overloads).
+- [x] Test suite expanded from 28 to 36 passing tests.
 
 **Acceptance criteria**
 
@@ -159,6 +161,6 @@ Only after previous phases are green.
 
 ## Suggested Next 3 Tasks (Start Here)
 
-1. **[Phase 4 — active]** Implement `IDisposable` on `WordNetEngine`; keep `Close()` as compatibility shim.
-2. Audit exception sites: replace broad `Exception` with `ArgumentException`, `InvalidOperationException`, etc.
-3. Add tests for disposal behavior and failure contracts.
+1. **[Phase 4 — active]** Add broader concurrent-read coverage (`AllWords` + mixed POS calls) to further validate locking behavior.
+2. Document thread-safety contract in API docs/README (read-safe vs single-threaded guidance).
+3. Prepare Phase 4 PR description and verification notes when instructed.
