@@ -3,38 +3,29 @@
 Date: 2026-03-07  
 Source: `docs/quick-repo-audit.md`, `docs/lair-dependencies.md`
 
-## Progress Update - 2026-03-08
+## Status snapshot - 2026-03-08
 
-## Stop-Point Snapshot - 2026-03-08
-
-### Current state
-
-- Phase 0 baseline build command is documented in `docs/quick-repo-audit.md`.
-- Minimal CI workflow exists at `.github/workflows/ci-build.yml` (`restore` + `build` for `src/WordNet.sln`).
-- `AllRules.ruleset` warning is tracked, but final remediation choice is not yet applied.
-- Prerequisites and setup guidance in `README.md` is still minimal and needs modernization.
-- LAIR dependency extraction strategy is documented and sequenced in this plan (`Phase 3A`).
-
-### Next step plan
-
-1. Run the new CI workflow on the fork/default branch and confirm first green run.
-2. Resolve `AllRules.ruleset` in both legacy project files (`add file` or `remove ruleset setting`).
-3. Add a short `Prerequisites and Build` section in `README.md`.
-4. Start Phase 1 characterization tests (`GetSynSets`, `GetMostCommonSynSet` first).
+| Phase | Status |
+|---|---|
+| Phase 0 — Baseline and Guardrails | ✓ Complete (merged PR #1) |
+| Phase 1 — Characterization Tests | 🔄 In progress (`feature/phase-1`) |
+| Phase 2 — Runtime Side-Effect Hardening | Pending |
+| Phase 3 — Dependency Reproducibility | Pending |
+| Phase 3A — LAIR Extraction | Pending |
+| Phase 4 — API Robustness | Pending |
+| Phase 5 — Project System Migration | Pending |
+| Phase 6 — Forward Port | Optional |
 
 ### Completed findings and decisions
 
 - [x] Baseline buildability validated on modern SDK (`dotnet 9`), including clean rebuild.
-- [x] Known warning identified and tracked: missing `AllRules.ruleset` (`MSB3884`).
+- [x] Known warning identified and tracked: missing `AllRules.ruleset` (`MSB3884`) — resolved.
 - [x] Runtime mutation risk documented: engine rewrites `index.*` when marker file is missing.
 - [x] Dependency inventory completed for `LAIR.*` with concrete usage map across projects.
-- [x] Initial dependency direction defined: remove LAIR from core in staged order (`LAIR.Extensions` -> `LAIR.IO` -> `LAIR.Collections`).
-
-### Newly clarified scope
-
-- `LAIR.Extensions` replacement is low risk and can be done first.
-- `LAIR.IO.BinarySearchTextStream` replacement is medium risk and should be validated with disk-mode tests.
-- `LAIR.Collections.Set<T>` replacement is highest risk and should use a compatibility shim before any public API cleanup.
+- [x] Initial dependency direction defined: remove LAIR from core in staged order (`LAIR.Extensions` → `LAIR.IO` → `LAIR.Collections`).
+- [x] `LAIR.Extensions` replacement is low risk and can be done first.
+- [x] `LAIR.IO.BinarySearchTextStream` replacement is medium risk and should be validated with disk-mode tests.
+- [x] `LAIR.Collections.Set<T>` replacement is highest risk and should use a compatibility shim before any public API cleanup.
 
 ## Goals
 
@@ -50,47 +41,42 @@ Source: `docs/quick-repo-audit.md`, `docs/lair-dependencies.md`
 - Keep legacy API surface stable until replacement layers are ready.
 - Treat `resources/` data as immutable unless an explicit preprocessing step is invoked.
 
-## Phase 0 - Baseline and Guardrails (1-2 days)
+## Phase 0 - Baseline and Guardrails ✓ COMPLETE (merged PR #1, 2026-03-08)
 
 - [x] Capture a reproducible baseline build command in docs.
 - [x] Add a minimal CI job: restore/build only (no tests yet).
-- [ ] Track known warnings (currently missing `AllRules.ruleset`) and decide: add file vs remove setting.
-- [ ] Document required local prerequisites and data location assumptions.
+- [x] Resolve `AllRules.ruleset` warning: removed dangling `<CodeAnalysisRuleSet>` from both legacy project files.
+- [x] Document required local prerequisites and data location assumptions in `README.md`.
 
-### Phase 0 Status - 2026-03-08
+**Acceptance criteria met:**
 
-- Baseline command is documented in `docs/quick-repo-audit.md` (`dotnet build src/WordNet.sln`, plus clean rebuild check).
-- Minimal CI workflow added at `.github/workflows/ci-build.yml` with `restore` + `build` steps.
-- `AllRules.ruleset` warning is tracked, but decision work (add file vs remove ruleset setting) is still pending.
-- Data location assumptions are documented (`resources/` usage), but local prerequisites are still not fully documented in onboarding/build docs.
+- Build is clean (0 warnings, 0 errors) locally and in CI.
+- CI reports green on both `windows-2022` and `windows-2025` (run `22820942946`).
+- `README.md` covers prerequisites, build commands, and `resources/` layout.
 
-### Next Step Plan (Phase 0 Closeout)
+## Phase 1 - Characterization Tests (3-5 days) ← ACTIVE on `feature/phase-1`
 
-1. Run the new CI workflow and verify first green result on the default branch.
-2. Resolve `AllRules.ruleset` path by choosing one approach and applying it in both project files.
-3. Add a short "Prerequisites and Build" section to `README.md` (SDK version, build command, expected `resources/` layout).
+### Phase 1 Status - 2026-03-08
 
-**Acceptance criteria**
-
-- A fresh environment can run one documented build command successfully.
-- CI reports green build status on `master`.
-
-## Phase 1 - Characterization Tests (3-5 days)
-
-Create a new test project (SDK-style is fine) that references the existing library assembly/project.
-
-- [ ] Add fixture setup for loading `resources/` test data.
+- [x] SDK-style test project (`src/WordNet.Tests`, `net48`, MSTest) exists and builds.
+- [x] Fixture setup: `ClassInitialize` loads `WordNetEngine` in in-memory mode from `resources/`.
+- [x] 5 initial tests in `Test1.cs`:
+  - `GetSynSets_DogNoun_ReturnsExpectedIDs`
+  - `GetMostCommonSynSet_DogNoun_ReturnsExpectedID`
+  - `GetMostCommonSynSet_RunVerb_ReturnsExpectedID`
+  - `GetSynSets_NormalizesCaseAndSpaces`
+  - `GetSynSets_UnknownWord_ReturnsEmptySet`
+- [ ] Confirm all 5 tests pass locally against real `resources/` data.
 - [ ] Add characterization tests for:
-  - [ ] `GetSynSets(word, pos)`
-  - [ ] `GetMostCommonSynSet(word, pos)`
-  - [ ] Synset relation traversal (`GetRelatedSynSets`, shortest path/depth)
-  - [ ] Similarity outputs (`WordNetSimilarityModel`, representative cases)
-- [ ] Snapshot a small set of canonical word/POS outputs to detect regressions.
-- [ ] Add CI test execution.
+  - [ ] Synset relation traversal (`GetRelatedSynSets`, hypernyms/hyponyms)
+  - [ ] Similarity outputs (`WordNetSimilarityModel`, representative word pairs)
+  - [ ] Edge cases (empty string, POS with no entries, very common word)
+- [ ] Snapshot canonical word/POS outputs to detect future regressions.
+- [ ] Add `dotnet test` step to `.github/workflows/ci-build.yml`.
 
 **Acceptance criteria**
 
-- At least 15-25 deterministic tests pass in CI.
+- At least 15–25 deterministic tests pass in CI.
 - Tests pin current behavior for both common and edge-case inputs.
 
 ## Phase 2 - Runtime Side-Effect Hardening (2-4 days)

@@ -5,69 +5,66 @@ Date: 2026-03-08
 ## Current working context
 
 - Local repo: `D:\WordNetAPI-fork`
-- Active branch: `feature/phase-0`
+- Active branch: `feature/phase-1`
 - Fork repo: `https://github.com/CabaVarga/WordNetAPI.git`
 - Upstream repo: `https://github.com/zacg/WordNetAPI.git`
 - `gh` CLI is installed/authenticated and default repo is set to `CabaVarga/WordNetAPI`.
 
-## Snapshot of work completed
+## Phase history
 
-- Added a modernization baseline and phased plan in `docs/modernization-plan.md`.
-- Added stop-point snapshot and next-step plan to `docs/modernization-plan.md`.
-- Added LAIR dependency analysis in `docs/lair-dependencies.md`.
-- Added migration runbook in `docs/fork-plan.md`.
-- Added CI workflow at `.github/workflows/ci-build.yml`.
-- Diagnosed initial CI failure from GitHub logs (`MSB3644` for missing `.NETFramework,Version=v4.0` reference assemblies on `windows-2025` runner).
-- Fixed `WordNet.Tests` LAIR reference paths to be stable (`lib`-based instead of `src/WordNet/bin/Debug`):
-  - `src/WordNet.Tests/WordNet.Tests.csproj`
-- Added SDK pin file:
-  - `global.json` (`9.0.300`)
-- Updated CI workflow in two iterations:
-  1. Pin SDK + attempt targeting-pack install
-  2. Switch to `windows-2019` and remove failing Chocolatey install step
-- Confirmed `windows-2019` is not a valid hosted label for current GitHub runner images; queued run stayed blocked until cancelled.
-- Updated CI workflow to a matrix for supported images:
-  - Required: `windows-2022`
-  - Canary (non-blocking): `windows-2025`
-- Pushed fix commits:
-  - `30a085b` `fix: stabilize CI build environment for legacy projects`
-  - `db57e94` `fix: run CI on windows-2019 for net40 targeting`
-  - `cdf1eec` `fix: move CI off windows-2019 with 2025 canary`
-- **Phase 0 closeout** (`2be89ce` `fix: make CI green for net40 projects on hosted Windows runners`):
-  - Added `Directory.Build.props` at repo root: sets `FrameworkPathOverride` from `CI_NETFX40_PATH` env var for `v4.0` projects only; no-op on developer machines.
-  - Updated CI workflow: added step to install `Microsoft.NETFramework.ReferenceAssemblies.net40` via `nuget.exe` and export path before `dotnet build`.
-  - Removed dangling `<CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>` from `WordNet.csproj` and `TestApplication.csproj` (file never existed → `MSB3884` warnings).
-  - Fixed `WordNet.csproj` Release `OutputPath` from broken `..\..\..\..\Libraries\` to `bin\Release\`.
-  - Updated `README.md` with prerequisites, build commands, data-file layout, project table, CI badge, and modernization roadmap pointer.
-  - CI run `22820942946`: both `windows-2022` and `windows-2025` green. ✓
+### Phase 0 — complete (merged to `master` via PR #1)
 
-## Current status (Phase 0)
+- CI workflow (`.github/workflows/ci-build.yml`): restore + build matrix on `windows-2022` (required) / `windows-2025` (canary).
+- `Directory.Build.props`: `FrameworkPathOverride` workaround for net40 on hosted runners.
+- `global.json`: SDK pinned to `9.0.300`.
+- `src/WordNet.Tests`: SDK-style test project (`net48`) scaffolded with MSTest; initial fixture and 5 smoke tests in `Test1.cs`.
+- `AllRules.ruleset` warnings removed from both legacy project files.
+- `README.md` expanded with prerequisites, build commands, data layout, project table, CI badge.
+- Full modernization docs suite added (`docs/`).
+- CI green on both runners: run `22820942946`.
 
-- [x] Baseline build command documented.
-- [x] Minimal CI workflow added.
-- [x] CI workflow hardened: both `windows-2022` and `windows-2025` pass.
-- [x] `AllRules.ruleset` warnings resolved (references removed from both legacy project files).
-- [x] `README.md` prerequisites/build guidance expanded.
+## Current status (Phase 1)
 
-**Phase 0 is complete.**
+### Done
 
-## Recommended immediate next step
+- [x] `WordNet.Tests` project exists and builds (`net48`, MSTest).
+- [x] Test fixture (`ClassInitialize`) loads `WordNetEngine` in in-memory mode from `resources/`.
+- [x] 5 initial tests in `Test1.cs`:
+  - `GetSynSets_DogNoun_ReturnsExpectedIDs` — pins all synset IDs for "dog" noun.
+  - `GetMostCommonSynSet_DogNoun_ReturnsExpectedID` — pins most-common synset.
+  - `GetMostCommonSynSet_RunVerb_ReturnsExpectedID` — pins most-common synset for a verb.
+  - `GetSynSets_NormalizesCaseAndSpaces` — verifies "new york" / "New York" equivalence.
+  - `GetSynSets_UnknownWord_ReturnsEmptySet` — verifies unknown words return empty.
 
-Start Phase 1 — characterization tests:
+### Pending
 
-1. Create a test fixture that loads WordNet data from `resources/` (or a small test subset).
-2. Add 5 deterministic tests for `GetSynSets(word, pos)` and `GetMostCommonSynSet(word, pos)`.
-3. Wire test execution into the CI workflow (`dotnet test`).
+- [ ] Verify tests pass locally against the real `resources/` data (requires WordNet 3.1 data files).
+- [ ] Expand to 15–25 tests covering: synset relation traversal, similarity model representative cases, edge cases.
+- [ ] Add `dotnet test` step to the CI workflow.
+- [ ] Snapshot canonical outputs for regression detection.
+
+## Recommended immediate next steps
+
+1. **Run existing tests locally** to confirm the 5 tests in `Test1.cs` pass against your `resources/` directory.
+   ```powershell
+   dotnet test src/WordNet.sln --configuration Debug
+   ```
+2. **Expand test coverage** — add tests for:
+   - Synset relation traversal (`GetRelatedSynSets`, hypernyms/hyponyms).
+   - `WordNetSimilarityModel` (pick 2–3 representative word pairs with known expected scores).
+   - Boundary cases: empty string, POS with no entries, very common word.
+3. **Wire `dotnet test` into CI** once the local suite is stable (add a `test` step after `build` in `ci-build.yml`).
 
 See `docs/modernization-plan.md` Phase 1 for the full checklist and acceptance criteria.
 
 ## Quick restart prompt (for new chat)
 
 ```text
-Use D:\WordNetAPI-fork on branch feature/phase-0.
+Use D:\WordNetAPI-fork on branch feature/phase-1.
 Read docs/handoff.md, docs/modernization-plan.md, and docs/lair-dependencies.md.
-Phase 0 is complete; CI is green (run 22820942946, both windows-2022 and windows-2025 pass).
-Start Phase 1: add a test fixture that loads WordNet resources/ data, then add
-characterization tests for GetSynSets and GetMostCommonSynSet in WordNet.Tests.
-Wire dotnet test into the CI workflow once the first tests pass locally.
+Phase 0 is merged to master. Phase 1 is in progress.
+WordNet.Tests already has 5 smoke tests in src/WordNet.Tests/Test1.cs.
+First, run `dotnet test src/WordNet.sln` locally and confirm all 5 tests pass.
+Then expand coverage to 15-25 tests (relation traversal, similarity model, edge cases)
+and add a dotnet test step to .github/workflows/ci-build.yml.
 ```
