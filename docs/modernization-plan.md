@@ -3,7 +3,7 @@
 Date: 2026-03-07  
 Source: `docs/quick-repo-audit.md`, `docs/lair-dependencies.md`
 
-## Status snapshot - 2026-03-08 (updated 2026-03-08, session 4)
+## Status snapshot - 2026-03-08 (updated 2026-03-08, session 6)
 
 | Phase | Status |
 |---|---|
@@ -101,9 +101,9 @@ Stabilize `LAIR.*` dependency story by inlining/replacing the minimal needed fun
   - [x] Replace `EnsureContainsKey(...)` (6 sites in `SynSet.cs`, 1 in `WordNetEngine.cs`) with explicit `ContainsKey` + assignment.
   - [x] Replace `TryReadLine(...)` loops with `ReadLine()` null-check loops (6 sites in `WordNetEngine.cs`) + explicit `Close()`.
   - [x] Replace `SetPosition(0)` with `DiscardBufferedData(); BaseStream.Position = 0` (`WordNetEngine.AllWords` disk branch).
-- [ ] **A2 — Replace `LAIR.IO.BinarySearchTextStream`** (medium risk):
-  - [ ] Implement internal `IndexBinarySearchReader` (or equivalent) in `src/WordNet/`.
-  - [ ] Swap disk-mode init block in `WordNetEngine` constructor.
+- [x] **A2 — Replace `LAIR.IO.BinarySearchTextStream`** (medium risk): ✓ complete
+  - [x] Implement internal `BinarySearchTextStream` in `src/WordNet/Internal/`.
+  - [x] Remove `using LAIR.IO;` from `WordNetEngine.cs` — type resolves to internal class; no other code changes needed.
 - [ ] **A3.1 — Introduce internal `Set<T>` shim** (medium-high risk):
   - [ ] Add `src/WordNet/Internal/Set.cs` preserving used members: `AddRange`, `IsReadOnly` setter, `new Set<T>()`, `new Set<T>(capacity)`, `new Set<T>(ICollection<T>)`.
   - [ ] Swap all usages in `SynSet.cs` and `WordNetEngine.cs`.
@@ -170,6 +170,6 @@ Only after previous phases are green.
 
 ## Suggested Next 3 Tasks (Start Here)
 
-1. **[Phase 3 — active]** A1: Remove `LAIR.Extensions` from `WordNetEngine.cs` and `SynSet.cs` — mechanical substitutions, no behavior change.
-2. A2: Implement `IndexBinarySearchReader` and swap `BinarySearchTextStream` in the disk-mode constructor block.
-3. A3.1: Add internal `Set<T>` shim and swap all usages; then drop `LAIR.*` from `WordNet.csproj`.
+1. **[Phase 3 — active]** A3.1: Add internal `Set<T>` shim (`src/WordNet/Internal/Set.cs`) preserving used API (`AddRange`, `IsReadOnly`, constructors); swap all usages in `SynSet.cs` and `WordNetEngine.cs`.
+2. Remove `LAIR.*` references from `WordNet.csproj`; verify clean build and 28/28 tests.
+3. Remove `LAIR.*` references from `TestApplication.csproj` and `WordNet.Tests.csproj`.

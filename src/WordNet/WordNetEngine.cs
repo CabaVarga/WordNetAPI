@@ -5,7 +5,6 @@ using System.Text;
 using System.IO;
 
 using LAIR.Collections.Generic;
-using LAIR.IO;
 
 namespace LAIR.ResourceAPIs.WordNet
 {

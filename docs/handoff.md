@@ -1,6 +1,6 @@
 # WordNetAPI Handoff
 
-Date: 2026-03-08 (updated 2026-03-08, session 5)
+Date: 2026-03-08 (updated 2026-03-08, session 6)
 
 ## Current working context
 
@@ -58,17 +58,22 @@ Stabilize the `LAIR.*` dependency story so the library builds reproducibly from 
 
 - [x] Branch `feature/phase-3` created from updated `master` (post PR #3 merge).
 - [x] 28/28 tests confirmed passing on `master`.
-- [x] `docs/handoff-archive.md` updated with Session 4 entry (first commit on branch).
+- [x] `docs/handoff-archive.md` updated with Session 4 and 5 entries.
 - [x] **A1: `LAIR.Extensions` removed from `WordNetEngine.cs` and `SynSet.cs`.**
   - `using LAIR.Extensions;` removed from both files.
   - 7 `EnsureContainsKey` calls (6 in `SynSet.cs`, 1 in `WordNetEngine.cs`) → explicit `ContainsKey` + `new`.
   - 6 `TryReadLine` loops (in `SortIndexFiles` and constructor) → `ReadLine()` null-check + explicit `Close()`.
   - 1 `SetPosition(0)` → `DiscardBufferedData(); BaseStream.Position = 0`.
   - 28/28 tests pass; clean build (0 warnings, 0 errors).
+- [x] **A2: `LAIR.IO.BinarySearchTextStream` replaced with internal implementation.**
+  - `src/WordNet/Internal/BinarySearchTextStream.cs` added — `internal` class in `LAIR.ResourceAPIs.WordNet` namespace matching the used API surface: `SearchComparisonDelegate`, constructor `(string path, ...)`, `Search(object key)`, `Stream` property, `Close()`.
+  - Binary search operates directly on `FileStream` at byte level (avoids `StreamReader` buffering issues); `StreamReader` exposed via `Stream` for linear reads in `AllWords`.
+  - `using LAIR.IO;` removed from `WordNetEngine.cs`. No other code changes needed — type name resolves to the internal class.
+  - `<Compile Include>` added to legacy `WordNet.csproj`.
+  - 28/28 tests pass; clean build (0 warnings, 0 errors).
 
 ### Pending
 
-- [ ] A2: Replace `BinarySearchTextStream` with internal helper.
 - [ ] A3.1: Add internal `Set<T>` shim; swap all usages.
 - [ ] Remove `LAIR.*` from `WordNet.csproj`; confirm clean build and 28/28 tests.
 - [ ] Remove `LAIR.*` from `TestApplication.csproj` and `WordNet.Tests.csproj`.
@@ -76,9 +81,9 @@ Stabilize the `LAIR.*` dependency story so the library builds reproducibly from 
 
 ## Recommended immediate next steps
 
-1. **A2** — implement `IndexBinarySearchReader` (internal class) in `src/WordNet/`; replace the `BinarySearchTextStream` usage in the disk-mode init block and `AllWords` disk branch. Medium risk — validate with disk-mode tests.
-2. **A3.1** — add `src/WordNet/Internal/Set.cs` shim; swap usages across `SynSet.cs`, `WordNetEngine.cs`.
-3. Remove `LAIR.*` refs from all `.csproj` files; verify 28/28 tests pass.
+1. **A3.1** — add `src/WordNet/Internal/Set.cs` shim; swap usages across `SynSet.cs`, `WordNetEngine.cs`.
+2. Remove `LAIR.*` refs from `WordNet.csproj`; verify clean build and 28/28 tests.
+3. Remove `LAIR.*` refs from `TestApplication.csproj` and `WordNet.Tests.csproj`.
 
 See `docs/lair-dependencies.md` for the full usage map and replacement table.
 
@@ -90,7 +95,8 @@ Read docs/handoff.md, docs/modernization-plan.md, and docs/lair-dependencies.md.
 Phases 0–2 are merged to master. Phase 3 is active — working tree is clean.
 28/28 tests pass. Do not push until instructed.
 Phase 3 goal: remove LAIR.* dependencies from WordNet core using Option A (inline replacements).
-A1 is complete (LAIR.Extensions removed). Continue with A2: replace BinarySearchTextStream.
+A1 is complete (LAIR.Extensions removed). A2 is complete (BinarySearchTextStream replaced).
+Continue with A3.1: add internal Set<T> shim.
 
 WORKFLOW REMINDER: When opening a new branch, add a new entry to docs/handoff-archive.md
 as the first or second commit, before any implementation work. Record the trigger, references
