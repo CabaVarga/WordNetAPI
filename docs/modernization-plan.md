@@ -3,13 +3,13 @@
 Date: 2026-03-07  
 Source: `docs/quick-repo-audit.md`, `docs/lair-dependencies.md`
 
-## Status snapshot - 2026-03-08
+## Status snapshot - 2026-03-08 (updated 2026-03-08)
 
 | Phase | Status |
 |---|---|
 | Phase 0 — Baseline and Guardrails | ✓ Complete (merged PR #1) |
-| Phase 1 — Characterization Tests | 🔄 In progress (`feature/phase-1`) |
-| Phase 2 — Runtime Side-Effect Hardening | Pending |
+| Phase 1 — Characterization Tests | ✓ Complete (merged PR #2) |
+| Phase 2 — Runtime Side-Effect Hardening | 🔄 In progress (`feature/phase-2`) |
 | Phase 3 — Dependency Reproducibility | Pending |
 | Phase 3A — LAIR Extraction | Pending |
 | Phase 4 — API Robustness | Pending |
@@ -54,32 +54,26 @@ Source: `docs/quick-repo-audit.md`, `docs/lair-dependencies.md`
 - CI reports green on both `windows-2022` and `windows-2025` (run `22820942946`).
 - `README.md` covers prerequisites, build commands, and `resources/` layout.
 
-## Phase 1 - Characterization Tests (3-5 days) ← ACTIVE on `feature/phase-1`
-
-### Phase 1 Status - 2026-03-08
+## Phase 1 - Characterization Tests ✓ COMPLETE (merged PR #2, 2026-03-08)
 
 - [x] SDK-style test project (`src/WordNet.Tests`, `net48`, MSTest) exists and builds.
 - [x] Fixture setup: `ClassInitialize` loads `WordNetEngine` in in-memory mode from `resources/`.
-- [x] 5 initial tests in `Test1.cs`:
-  - `GetSynSets_DogNoun_ReturnsExpectedIDs`
-  - `GetMostCommonSynSet_DogNoun_ReturnsExpectedID`
-  - `GetMostCommonSynSet_RunVerb_ReturnsExpectedID`
-  - `GetSynSets_NormalizesCaseAndSpaces`
-  - `GetSynSets_UnknownWord_ReturnsEmptySet`
-- [ ] Confirm all 5 tests pass locally against real `resources/` data.
-- [ ] Add characterization tests for:
-  - [ ] Synset relation traversal (`GetRelatedSynSets`, hypernyms/hyponyms)
-  - [ ] Similarity outputs (`WordNetSimilarityModel`, representative word pairs)
-  - [ ] Edge cases (empty string, POS with no entries, very common word)
-- [ ] Snapshot canonical word/POS outputs to detect future regressions.
-- [ ] Add `dotnet test` step to `.github/workflows/ci-build.yml`.
+- [x] 5 initial tests in `Test1.cs` — all pass locally and in CI.
+- [x] 26 tests total across 4 files:
+  - `Test1.cs` — 5 smoke tests (synset IDs, most-common synset, case/space normalization, unknown word)
+  - `RelationTraversalTests.cs` — hypernym/hyponym counts, pinned direct hypernym IDs, recursive traversal to entity root, synset words/gloss
+  - `SimilarityModelTests.cs` — self-similarity=1, dog–cat > dog–car (WuPalmer max), cross-POS returns 0, average strategy bounds
+  - `EdgeCaseTests.cs` — empty string, adjective/adverb POS, unknown word, round-trip by ID, high-polysemy verb, POS-unrestricted search
+- [x] Shared `TestHelpers.FindResourcesDirectory()` helper factored out of `Test1.cs`.
+- [x] `dotnet test` step added to `.github/workflows/ci-build.yml` (Release config, `--no-build`, after Build).
+- [x] All 26 tests pass in CI on both `windows-2022` and `windows-2025`.
 
-**Acceptance criteria**
+**Acceptance criteria met:**
 
-- At least 15–25 deterministic tests pass in CI.
+- 26 deterministic tests pass in CI (exceeds 15–25 target).
 - Tests pin current behavior for both common and edge-case inputs.
 
-## Phase 2 - Runtime Side-Effect Hardening (2-4 days)
+## Phase 2 - Runtime Side-Effect Hardening (2-4 days) ← ACTIVE on `feature/phase-2`
 
 Address index-file mutation in `WordNetEngine` constructor.
 
@@ -181,6 +175,6 @@ Only after previous phases are green.
 
 ## Suggested Next 3 Tasks (Start Here)
 
-1. Create test project and add first 5 characterization tests around `GetSynSets` and `GetMostCommonSynSet`.
-2. Decide dependency strategy for `LAIR.*` and document the chosen approach.
-3. Refactor index sorting into an explicit preprocessing step (no implicit mutation on constructor).
+1. **[Phase 2 — active]** Audit `WordNetEngine` constructor: locate and isolate the index-sorting write path, extract it into an explicit preprocessing step, and add fail-fast guard + tests.
+2. Decide dependency strategy for `LAIR.*` and document the chosen approach (Phase 3).
+3. Begin LAIR extraction with `LAIR.Extensions` replacements — lowest risk, can overlap Phase 2 (Phase 3A).

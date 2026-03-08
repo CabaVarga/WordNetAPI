@@ -84,18 +84,7 @@ public sealed class Test1
         Assert.AreEqual(0, count);
     }
 
-    private static string FindResourcesDirectory()
-    {
-        DirectoryInfo? current = new DirectoryInfo(AppContext.BaseDirectory);
-        while (current != null)
-        {
-            string candidate = Path.Combine(current.FullName, "resources");
-            if (Directory.Exists(candidate))
-                return candidate;
+    internal static string FindResourcesDirectoryPublic() => TestHelpers.FindResourcesDirectory();
 
-            current = current.Parent;
-        }
-
-        throw new DirectoryNotFoundException("Could not locate repository resources directory.");
-    }
+    private static string FindResourcesDirectory() => TestHelpers.FindResourcesDirectory();
 }
