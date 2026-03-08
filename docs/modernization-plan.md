@@ -3,7 +3,7 @@
 Date: 2026-03-07  
 Source: `docs/quick-repo-audit.md`, `docs/lair-dependencies.md`
 
-## Status snapshot - 2026-03-08 (updated 2026-03-08, session 6)
+## Status snapshot - 2026-03-08 (updated 2026-03-08, session 7)
 
 | Phase | Status |
 |---|---|
@@ -104,12 +104,12 @@ Stabilize `LAIR.*` dependency story by inlining/replacing the minimal needed fun
 - [x] **A2 — Replace `LAIR.IO.BinarySearchTextStream`** (medium risk): ✓ complete
   - [x] Implement internal `BinarySearchTextStream` in `src/WordNet/Internal/`.
   - [x] Remove `using LAIR.IO;` from `WordNetEngine.cs` — type resolves to internal class; no other code changes needed.
-- [ ] **A3.1 — Introduce internal `Set<T>` shim** (medium-high risk):
-  - [ ] Add `src/WordNet/Internal/Set.cs` preserving used members: `AddRange`, `IsReadOnly` setter, `new Set<T>()`, `new Set<T>(capacity)`, `new Set<T>(ICollection<T>)`.
-  - [ ] Swap all usages in `SynSet.cs` and `WordNetEngine.cs`.
-- [ ] Remove `LAIR.*` references from `WordNet.csproj`; confirm clean build.
-- [ ] Remove `LAIR.*` references from `TestApplication.csproj` and `WordNet.Tests.csproj`.
-- [ ] Validate with 28/28 characterization tests (both in-memory and disk-mode paths).
+- [x] **A3.1 — Introduce internal `Set<T>` shim** (medium-high risk): ✓ complete
+  - [x] Add `src/WordNet/Internal/Set.cs` preserving used members: `AddRange`, `IsReadOnly` setter, `new Set<T>()`, `new Set<T>(capacity)`, `new Set<T>(ICollection<T>)`, `new Set<T>(bool)`.
+  - [x] No code changes in `SynSet.cs` or `WordNetEngine.cs` — `using LAIR.Collections.Generic;` resolves to the shim.
+- [x] Remove `LAIR.*` references from `WordNet.csproj`; confirm clean build.
+- [x] Remove `LAIR.*` references from `TestApplication.csproj` and `WordNet.Tests.csproj`.
+- [x] Validate with 28/28 characterization tests (both in-memory and disk-mode paths).
 - [ ] Add dependency provenance note to docs.
 
 **Acceptance criteria**
@@ -170,6 +170,6 @@ Only after previous phases are green.
 
 ## Suggested Next 3 Tasks (Start Here)
 
-1. **[Phase 3 — active]** A3.1: Add internal `Set<T>` shim (`src/WordNet/Internal/Set.cs`) preserving used API (`AddRange`, `IsReadOnly`, constructors); swap all usages in `SynSet.cs` and `WordNetEngine.cs`.
-2. Remove `LAIR.*` references from `WordNet.csproj`; verify clean build and 28/28 tests.
-3. Remove `LAIR.*` references from `TestApplication.csproj` and `WordNet.Tests.csproj`.
+1. **[Phase 3 — active]** Add dependency provenance note to docs.
+2. Open PR for Phase 3 when instructed.
+3. Begin Phase 4 (API Robustness — `IDisposable`, defensive validation, typed exceptions).

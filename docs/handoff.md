@@ -1,6 +1,6 @@
 # WordNetAPI Handoff
 
-Date: 2026-03-08 (updated 2026-03-08, session 6)
+Date: 2026-03-08 (updated 2026-03-08, session 7)
 
 ## Current working context
 
@@ -71,19 +71,22 @@ Stabilize the `LAIR.*` dependency story so the library builds reproducibly from 
   - `using LAIR.IO;` removed from `WordNetEngine.cs`. No other code changes needed — type name resolves to the internal class.
   - `<Compile Include>` added to legacy `WordNet.csproj`.
   - 28/28 tests pass; clean build (0 warnings, 0 errors).
+- [x] **A3.1: Internal `Set<T>` shim added; all LAIR references removed.**
+  - `src/WordNet/Internal/Set.cs` added — `public class Set<T>` in `LAIR.Collections.Generic` namespace backed by `HashSet<T>`. Preserves used API surface: constructors `()`, `(int)`, `(ICollection<T>)`, `(bool)`; members `Add`, `AddRange`, `Contains`, `Count`, `IsReadOnly` (get/set); `IEnumerable<T>`.
+  - `IsReadOnly` setter enforced: protects cached in-memory synset collections from caller mutation (used in `GetSynSets` optimization path).
+  - `using LAIR.Collections.Generic;` statements in `SynSet.cs`, `WordNetEngine.cs`, `WordNetSimilarityModel.cs` now resolve to the internal shim — no code changes needed in those files.
+  - All three `LAIR.*` DLL references removed from `WordNet.csproj`, `TestApplication.csproj`, and `WordNet.Tests.csproj`.
+  - 28/28 tests pass; clean build (0 warnings, 0 errors) across all three projects.
 
 ### Pending
 
-- [ ] A3.1: Add internal `Set<T>` shim; swap all usages.
-- [ ] Remove `LAIR.*` from `WordNet.csproj`; confirm clean build and 28/28 tests.
-- [ ] Remove `LAIR.*` from `TestApplication.csproj` and `WordNet.Tests.csproj`.
 - [ ] Add dependency provenance note to docs.
 
 ## Recommended immediate next steps
 
-1. **A3.1** — add `src/WordNet/Internal/Set.cs` shim; swap usages across `SynSet.cs`, `WordNetEngine.cs`.
-2. Remove `LAIR.*` refs from `WordNet.csproj`; verify clean build and 28/28 tests.
-3. Remove `LAIR.*` refs from `TestApplication.csproj` and `WordNet.Tests.csproj`.
+1. Add dependency provenance note to docs (record that `Set<T>` and `BinarySearchTextStream` are internal replacements derived from the LAIR API surface).
+2. Open PR for Phase 3 when instructed.
+3. Begin Phase 4 (API Robustness — `IDisposable`, defensive validation, typed exceptions).
 
 See `docs/lair-dependencies.md` for the full usage map and replacement table.
 
@@ -94,9 +97,10 @@ Use D:\WordNetAPI-fork on branch feature/phase-3.
 Read docs/handoff.md, docs/modernization-plan.md, and docs/lair-dependencies.md.
 Phases 0–2 are merged to master. Phase 3 is active — working tree is clean.
 28/28 tests pass. Do not push until instructed.
-Phase 3 goal: remove LAIR.* dependencies from WordNet core using Option A (inline replacements).
-A1 is complete (LAIR.Extensions removed). A2 is complete (BinarySearchTextStream replaced).
-Continue with A3.1: add internal Set<T> shim.
+Phase 3 goal: remove LAIR.* dependencies — COMPLETE.
+A1 (LAIR.Extensions), A2 (BinarySearchTextStream), A3.1 (Set<T> shim) all done.
+All LAIR.* DLL references removed from all three csproj files. 0 warnings, 0 errors.
+Remaining: add dependency provenance note to docs, then open PR when instructed.
 
 WORKFLOW REMINDER: When opening a new branch, add a new entry to docs/handoff-archive.md
 as the first or second commit, before any implementation work. Record the trigger, references
