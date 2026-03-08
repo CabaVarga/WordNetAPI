@@ -59,7 +59,7 @@ Keep the table below updated. One row per phase; update when a phase closes (PR 
 | 2 — Runtime Side-Effect Hardening | 2b, 3    | `07c1b68` | 28             | [#3](https://github.com/CabaVarga/WordNetAPI/pull/3) |
 | 3 — Dependency Reproducibility    | 4, 5, 6, 7 | `2bd520b` | 28             | [#4](https://github.com/CabaVarga/WordNetAPI/pull/4) |
 | 4 — API Robustness                | 8, 9, 10   | `ef8343f` | 36             | [#5](https://github.com/CabaVarga/WordNetAPI/pull/5) |
-| 5 — Project System Migration      | 11, 12     | —         | 36 (baseline)  | pending |
+| 5 — Project System Migration      | 11, 12     | —         | 36             | pending |
 
 ---
 
@@ -67,18 +67,24 @@ Keep the table below updated. One row per phase; update when a phase closes (PR 
 
 **Trigger:** Approved Phase 5 execution plan to begin SDK-style migration work on `feature/phase-5`.
 
-**References:** PR [#5](https://github.com/CabaVarga/WordNetAPI/pull/5) merged · CI runs `22825895115` / `22825900637` (both runners green) · 36 tests at branch-open baseline.
+**References:** PR pending · latest merged context PR [#5](https://github.com/CabaVarga/WordNetAPI/pull/5) · no new CI run yet · 36 tests at session close (local Release run).
 
 **Changes to handoff.md:**
 
 - Date line updated to "session 12".
-- Phase 5 pending checklist refreshed to reflect active implementation sequence from the approved plan.
-- Recommended next steps aligned to SDK-style conversion order (`WordNet` first, then `TestApplication`, then CI/sln cleanup).
-- Quick restart prompt kept on `feature/phase-5` with Phase 4 still recorded as merged via PR #5.
+- Current status promoted to "Phase 5 implementation complete locally, PR pending".
+- Done list expanded with concrete migration outcomes:
+  - SDK-style conversion of `WordNet.csproj` and `TestApplication.csproj` to `net48`.
+  - WinForms/resource-designer metadata retained for the harness project.
+  - `WordNet.sln` configuration cleanup (Any CPU only).
+  - net40-only CI/workaround removal (`ci-build.yml`, `Directory.Build.props`).
+  - local validation result recorded: restore/build/test passed with 36/36 tests.
+- Pending reduced to a single action: open/push PR only when instructed.
+- Recommended next steps shifted from implementation sequencing to PR/CI and next-phase branch handoff.
 
 **Complications / deviations:**
 
-- None from prior session; branch opened clean with baseline already validated (36/36).
+- None.
 
 ---
 
