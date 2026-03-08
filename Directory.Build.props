@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <!--
+    CI workaround for .NET Framework 4.0 reference assemblies.
+
+    GitHub-hosted Windows runners (windows-2022, windows-2025) do not ship
+    the .NET Framework 4.0 targeting pack, which causes MSB3644 when building
+    legacy projects that have <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>.
+
+    The CI workflow installs the Microsoft.NETFramework.ReferenceAssemblies.net40
+    NuGet package and sets CI_NETFX40_PATH to the directory containing the DLLs.
+    This property group redirects MSBuild to that path for net40 projects only.
+
+    On developer machines the variable is unset, so normal targeting pack
+    resolution continues to apply.
+  -->
+  <PropertyGroup Condition="'$(TargetFrameworkVersion)' == 'v4.0' and '$(CI_NETFX40_PATH)' != ''">
+    <FrameworkPathOverride>$(CI_NETFX40_PATH)</FrameworkPathOverride>
+  </PropertyGroup>
+</Project>
