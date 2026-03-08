@@ -97,10 +97,10 @@ Stabilize `LAIR.*` dependency story by inlining/replacing the minimal needed fun
 
 **Chosen strategy: Option A — internal compatibility layer, then swap internals.**
 
-- [ ] **A1 — Remove `LAIR.Extensions`** (low risk):
-  - [ ] Replace `EnsureContainsKey(...)` (7 sites in `SynSet.cs`, 1 in `WordNetEngine.cs`) with explicit `ContainsKey` + assignment.
-  - [ ] Replace `TryReadLine(...)` loops with `ReadLine()` null-check loops (multiple sites in `WordNetEngine.cs`).
-  - [ ] Replace `SetPosition(0)` with `DiscardBufferedData(); BaseStream.Position = 0` (`WordNetEngine.AllWords` disk branch).
+- [x] **A1 — Remove `LAIR.Extensions`** (low risk): ✓ complete
+  - [x] Replace `EnsureContainsKey(...)` (6 sites in `SynSet.cs`, 1 in `WordNetEngine.cs`) with explicit `ContainsKey` + assignment.
+  - [x] Replace `TryReadLine(...)` loops with `ReadLine()` null-check loops (6 sites in `WordNetEngine.cs`) + explicit `Close()`.
+  - [x] Replace `SetPosition(0)` with `DiscardBufferedData(); BaseStream.Position = 0` (`WordNetEngine.AllWords` disk branch).
 - [ ] **A2 — Replace `LAIR.IO.BinarySearchTextStream`** (medium risk):
   - [ ] Implement internal `IndexBinarySearchReader` (or equivalent) in `src/WordNet/`.
   - [ ] Swap disk-mode init block in `WordNetEngine` constructor.

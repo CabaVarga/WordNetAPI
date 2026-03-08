@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.IO;
 
-using LAIR.Extensions;
 using LAIR.Collections.Generic;
 using LAIR.IO;
 
@@ -228,13 +227,14 @@ namespace LAIR.ResourceAPIs.WordNet
                 int numWords = 0;
                 StreamReader indexFile = new StreamReader(indexPath);
                 string line;
-                while (indexFile.TryReadLine(out line))
+                while ((line = indexFile.ReadLine()) != null)
                     if (!line.StartsWith(" "))
                         ++numWords;
+                indexFile.Close();
 
                 Dictionary<string, string> wordLine = new Dictionary<string, string>(numWords);
                 indexFile = new StreamReader(indexPath);
-                while (indexFile.TryReadLine(out line))
+                while ((line = indexFile.ReadLine()) != null)
                     if (line.StartsWith(" "))
                         tempFile.WriteLine(line);
                     else
@@ -242,6 +242,7 @@ namespace LAIR.ResourceAPIs.WordNet
                         line = line.Trim();
                         wordLine.Add(line.Substring(0, line.IndexOf(' ')), line);
                     }
+                indexFile.Close();
 
                 List<string> sortedWords = new List<string>(wordLine.Count);
                 sortedWords.AddRange(wordLine.Keys);
@@ -381,7 +382,8 @@ namespace LAIR.ResourceAPIs.WordNet
                     {
                         // reset index file to start
                         StreamReader indexFile = _posIndexWordSearchStream[pos].Stream;
-                        indexFile.SetPosition(0);
+                        indexFile.DiscardBufferedData();
+                        indexFile.BaseStream.Position = 0;
 
                         // read words, skipping header lines
                         Set<string> words = new Set<string>();
@@ -454,12 +456,13 @@ namespace LAIR.ResourceAPIs.WordNet
                     // scan synset data file for lines that don't start with a space...these are synset definition lines
                     StreamReader dataFile = new StreamReader(dataPath);
                     string line;
-                    while (dataFile.TryReadLine(out line))
+                    while ((line = dataFile.ReadLine()) != null)
                     {
                         int firstSpace = line.IndexOf(' ');
                         if (firstSpace > 0)
                             ++totalSynsets;
                     }
+                    dataFile.Close();
                 }
 
                 // pass 2:  create synset shells (pos and offset only)
@@ -471,7 +474,7 @@ namespace LAIR.ResourceAPIs.WordNet
                     // scan synset data file
                     StreamReader dataFile = new StreamReader(dataPath);
                     string line;
-                    while (dataFile.TryReadLine(out line))
+                    while ((line = dataFile.ReadLine()) != null)
                     {
                         int firstSpace = line.IndexOf(' ');
                         if (firstSpace > 0)
@@ -483,6 +486,7 @@ namespace LAIR.ResourceAPIs.WordNet
                             _idSynset.Add(synset.ID, synset);
                         }
                     }
+                    dataFile.Close();
                 }
 
                 // pass 3:  instantiate synsets (hooks up relations, set glosses, etc.)
@@ -493,13 +497,14 @@ namespace LAIR.ResourceAPIs.WordNet
                     // scan synset data file
                     StreamReader dataFile = new StreamReader(dataPath);
                     string line;
-                    while (dataFile.TryReadLine(out line))
+                    while ((line = dataFile.ReadLine()) != null)
                     {
                         int firstSpace = line.IndexOf(' ');
                         if (firstSpace > 0)
                             // instantiate synset defined on current line, using the instantiated synsets for all references
                             _idSynset[pos + ":" + int.Parse(line.Substring(0, firstSpace))].Instantiate(line, _idSynset);
                     }
+                    dataFile.Close();
                 }
 
                 // organize synsets by pos and words...also set most common synset for word-pos pairs that have multiple synsets
@@ -508,12 +513,13 @@ namespace LAIR.ResourceAPIs.WordNet
                 {
                     POS pos = GetFilePOS(indexPath);
 
-                    _posWordSynSets.EnsureContainsKey(pos, typeof(Dictionary<string, Set<SynSet>>));
+                    if (!_posWordSynSets.ContainsKey(pos))
+                        _posWordSynSets[pos] = new Dictionary<string, Set<SynSet>>();
 
                     // scan word index file, skipping header lines
                     StreamReader indexFile = new StreamReader(indexPath);
                     string line;
-                    while (indexFile.TryReadLine(out line))
+                    while ((line = indexFile.ReadLine()) != null)
                     {
                         int firstSpace = line.IndexOf(' ');
                         if (firstSpace > 0)
@@ -533,6 +539,7 @@ namespace LAIR.ResourceAPIs.WordNet
                                 _posWordSynSets[pos][word].Add(_idSynset[synset.ID]);
                         }
                     }
+                    indexFile.Close();
                 }
             }
             else
