@@ -9,7 +9,8 @@ Move ongoing modernization work from the current clone (tracking upstream) to yo
 ## Current repo state (detected)
 
 - Current local branch: `feature/phase-0`
-- Current remote `origin`: `https://github.com/zacg/WordNetAPI.git`
+- Current remote `origin`: `https://github.com/CabaVarga/WordNetAPI.git`
+- Current remote `upstream`: `https://github.com/zacg/WordNetAPI.git`
 
 ## Recommended approach
 
@@ -103,6 +104,28 @@ git remote -v
 ```
 
 From here forward, work in `D:\WordNetAPI-fork`.
+
+## Context and conversation transfer
+
+If you open a new Cursor chat/workspace, conversation context will not always carry over automatically. Use this handoff set to recover context quickly:
+
+- Working folder: `D:\WordNetAPI-fork`
+- Branch: `feature/phase-0`
+- Fork remote: `origin` -> `https://github.com/CabaVarga/WordNetAPI.git`
+- Upstream remote: `upstream` -> `https://github.com/zacg/WordNetAPI.git`
+- Core planning docs:
+  - `docs/modernization-plan.md`
+  - `docs/lair-dependencies.md`
+  - `docs/fork-plan.md`
+  - `docs/handoff.md`
+
+Suggested first prompt in a new chat:
+
+```text
+Start in D:\WordNetAPI-fork on branch feature/phase-0.
+Read docs/handoff.md, docs/modernization-plan.md, and docs/lair-dependencies.md.
+Continue from the next pending Phase 0 task.
+```
 
 ## Step 6 - Run CI from the fork
 
