@@ -1,6 +1,6 @@
 # WordNetAPI Handoff
 
-Date: 2026-03-08 (updated 2026-03-08)
+Date: 2026-03-08 (updated 2026-03-08, session 2)
 
 ## Current working context
 
@@ -42,13 +42,17 @@ Remove the implicit index-file mutation that occurs in the `WordNetEngine` const
 ### Done
 
 - [x] Branch `feature/phase-2` created from updated `master` (post PR #2 merge).
-- [x] Two carry-over changes staged (rescued from dropped stash — NOT yet committed):
-  - `.github/workflows/ci-build.yml` — `dotnet test` step (was in stash, not included in PR #2)
-  - `src/WordNet.Tests/Test1.cs` — `FindResourcesDirectory()` delegates to `TestHelpers` (same)
+- [x] All Phase 1 carry-overs committed (commit `682abc7`) — working tree is clean:
+  - `.github/workflows/ci-build.yml` — `dotnet test` step
+  - `src/WordNet.Tests/Test1.cs` — `FindResourcesDirectory()` delegates to `TestHelpers`
+  - `src/WordNet.Tests/TestHelpers.cs` — shared helper (was never committed to any branch)
+  - `src/WordNet.Tests/RelationTraversalTests.cs`, `SimilarityModelTests.cs`, `EdgeCaseTests.cs` — same
+  - Docs updated: `handoff.md`, `modernization-plan.md`, `fork-plan.md`, `quick-repo-audit.md`
+- [x] 26/26 tests confirmed passing locally (Release config).
+- [x] Branch pushed to `origin/feature/phase-2`.
 
 ### Pending
 
-- [ ] **Commit the two staged carry-over files** before starting any Phase 2 work.
 - [ ] Audit `WordNetEngine` constructor: locate and isolate the index-sorting write path.
 - [ ] Introduce an explicit preprocessing mode/tool that sorts the index files on demand.
 - [ ] Remove the implicit write/mutate behavior from normal engine initialization.
@@ -59,17 +63,10 @@ Remove the implicit index-file mutation that occurs in the `WordNetEngine` const
 
 ## Recommended immediate next steps
 
-1. **Commit the staged carry-over files** — confirm with `git status`, then commit.
-   ```powershell
-   git status   # should show .github/workflows/ci-build.yml and src/WordNet.Tests/Test1.cs staged
-   git add .github/workflows/ci-build.yml src/WordNet.Tests/Test1.cs
-   git commit -m "chore: carry over ci test step and Test1 TestHelpers delegation from phase-1"
-   dotnet test src/WordNet.sln --configuration Release   # confirm 26/26 still pass
-   ```
-2. **Audit the constructor** — find the sorting and file-write code in `WordNetEngine`.
-3. **Extract** the sorting logic into a standalone `Preprocess` / `SortIndexFiles` method or CLI entry point.
-4. **Guard** normal init: detect unsorted state, throw a descriptive exception if preprocessing has not been run.
-5. **Add tests** covering both paths before touching any behavior.
+1. **Audit the constructor** — find the sorting and file-write code in `WordNetEngine`.
+2. **Extract** the sorting logic into a standalone `Preprocess` / `SortIndexFiles` method or CLI entry point.
+3. **Guard** normal init: detect unsorted state, throw a descriptive exception if preprocessing has not been run.
+4. **Add tests** covering both paths before touching any behavior.
 
 See `docs/modernization-plan.md` Phase 2 for the full checklist and acceptance criteria.
 
@@ -78,11 +75,9 @@ See `docs/modernization-plan.md` Phase 2 for the full checklist and acceptance c
 ```text
 Use D:\WordNetAPI-fork on branch feature/phase-2.
 Read docs/handoff.md, docs/modernization-plan.md, and docs/lair-dependencies.md.
-Phases 0 and 1 are merged to master. Phase 2 is active (not yet started).
-26 tests pass across Test1.cs, RelationTraversalTests.cs, SimilarityModelTests.cs, EdgeCaseTests.cs.
-FIRST: two staged carry-over files need committing before any Phase 2 work —
-  .github/workflows/ci-build.yml (dotnet test step) and src/WordNet.Tests/Test1.cs (TestHelpers delegation).
-Run `git status` to confirm, commit them, then `dotnet test` to verify 26/26 still pass.
+Phases 0 and 1 are merged to master. Phase 2 is active — working tree is clean, all carry-overs committed.
+26/26 tests pass. Branch is pushed to origin/feature/phase-2.
 Phase 2 goal: remove implicit index-file mutation from WordNetEngine constructor.
 Extract sorting into an explicit preprocessing step; add fail-fast guard; add tests for both paths.
+Start by auditing the WordNetEngine constructor for the index-sorting/file-write path.
 ```
