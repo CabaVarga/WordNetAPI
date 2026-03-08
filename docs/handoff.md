@@ -58,6 +58,7 @@ Stabilize the `LAIR.*` dependency story so the library builds reproducibly from 
 
 - [x] Branch `feature/phase-3` created from updated `master` (post PR #3 merge).
 - [x] 28/28 tests confirmed passing on `master`.
+- [x] `docs/handoff-archive.md` updated with Session 4 entry (first commit on branch).
 
 ### Pending
 
@@ -85,4 +86,8 @@ Phases 0–2 are merged to master. Phase 3 is active — working tree is clean.
 28/28 tests pass. Do not push until instructed.
 Phase 3 goal: remove LAIR.* dependencies from WordNet core using Option A (inline replacements).
 Start with A1: remove LAIR.Extensions usage from WordNetEngine.cs and SynSet.cs.
+
+WORKFLOW REMINDER: When opening a new branch, add a new entry to docs/handoff-archive.md
+as the first or second commit, before any implementation work. Record the trigger, references
+(PR, CI run, test count), changes made to handoff.md, and any complications from the prior session.
 ```
