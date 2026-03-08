@@ -57,7 +57,36 @@ Keep the table below updated. One row per phase; update when a phase closes (PR 
 | 0 — Baseline and Guardrails       | 1a       | `4735631` | 0 (build-only) | [#1](https://github.com/CabaVarga/WordNetAPI/pull/1) |
 | 1 — Characterization Tests        | 1b, 2a   | `682abc7` | 26             | [#2](https://github.com/CabaVarga/WordNetAPI/pull/2) |
 | 2 — Runtime Side-Effect Hardening | 2b, 3    | `07c1b68` | 28             | [#3](https://github.com/CabaVarga/WordNetAPI/pull/3) |
-| 3 — Dependency Reproducibility    | 4, 5, 6 → | —         | 28             | pending |
+| 3 — Dependency Reproducibility    | 4, 5, 6, 7 | `2bd520b` | 28             | [#4](https://github.com/CabaVarga/WordNetAPI/pull/4) |
+| 4 — API Robustness                | 8 →        | —         | 28             | pending |
+
+---
+
+## Session 7 — 2026-03-08 · `dd2991e` · branch `feature/phase-3`
+
+**Trigger:** Continuation of Phase 3; A3.1 (`Set<T>` shim) implemented; all LAIR refs removed; PR #4 opened and merged.
+
+**References:** PR [#4](https://github.com/CabaVarga/WordNetAPI/pull/4) merged · CI runs `22825302479` / `22825311015` (both runners green) · 28 tests at close.
+
+**Changes to handoff.md:**
+
+- Date line updated to "session 7".
+- Done list expanded: A3.1 marked complete — `src/WordNet/Internal/Set.cs` added as public
+  `Set<T>` in `LAIR.Collections.Generic` namespace backed by `HashSet<T>`; all three `LAIR.*`
+  DLL references removed from `WordNet.csproj`, `TestApplication.csproj`, `WordNet.Tests.csproj`.
+  28/28 tests, 0 warnings, 0 errors across all three projects.
+- Pending reduced to dependency provenance note (completed same session) and PR.
+- Recommended next steps updated: merge PR #4, then Phase 4.
+- Quick restart prompt updated: Phase 3 described as complete; points to Phase 4.
+- Dependency provenance section added to `docs/lair-dependencies.md`.
+
+**Complications / deviations:**
+
+- TestApplication build initially failed with CS0433 (ambiguous `Set<T>` between LAIR DLL and
+  WordNet assembly). Required removing LAIR refs from `TestApplication.csproj` and
+  `WordNet.Tests.csproj` in the same commit as the shim, rather than as a separate step.
+  The planned sequencing (A3.1 → remove from WordNet.csproj → remove from downstream) was
+  collapsed into a single atomic change.
 
 ---
 

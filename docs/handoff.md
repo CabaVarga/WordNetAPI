@@ -1,11 +1,11 @@
 # WordNetAPI Handoff
 
-Date: 2026-03-08 (updated 2026-03-08, session 7)
+Date: 2026-03-08 (updated 2026-03-08, session 8)
 
 ## Current working context
 
 - Local repo: `D:\WordNetAPI-fork`
-- Active branch: `feature/phase-3`
+- Active branch: `feature/phase-4`
 - Fork repo: `https://github.com/CabaVarga/WordNetAPI.git`
 - Upstream repo: `https://github.com/zacg/WordNetAPI.git`
 - `gh` CLI is installed/authenticated and default repo is set to `CabaVarga/WordNetAPI`.
@@ -38,64 +38,58 @@ Date: 2026-03-08 (updated 2026-03-08, session 7)
 - `.gitattributes` added: `resources/data.*` and `resources/index.*` marked as binary to prevent CRLF corruption of byte offsets on Windows CI.
 - 28/28 tests pass in CI on both runners.
 
-## Current status (Phase 3 — active on `feature/phase-3`)
+### Phase 3 — complete (merged to `master` via PR #4)
+
+- All `LAIR.*` DLL dependencies removed via Option A (inline replacements).
+- A1: `LAIR.Extensions` usage inlined (7 `EnsureContainsKey`, 6 `TryReadLine`, 1 `SetPosition`).
+- A2: `LAIR.IO.BinarySearchTextStream` replaced with internal byte-level implementation (`src/WordNet/Internal/BinarySearchTextStream.cs`).
+- A3.1: Internal `Set<T>` shim added (`src/WordNet/Internal/Set.cs`) — `public class Set<T>` in `LAIR.Collections.Generic` namespace backed by `HashSet<T>`.
+- All `LAIR.*` references removed from `WordNet.csproj`, `TestApplication.csproj`, `WordNet.Tests.csproj`.
+- Dependency provenance documented in `docs/lair-dependencies.md`.
+- 28/28 tests pass; 0 warnings, 0 errors across all projects.
+- CI green on both runners: runs `22825302479` / `22825311015`.
+
+## Current status (Phase 4 — active on `feature/phase-4`)
 
 ### Goal
 
-Stabilize the `LAIR.*` dependency story so the library builds reproducibly from a clean checkout without machine-specific state. The chosen strategy (Option A from `docs/lair-dependencies.md`) is to **inline/replace the minimal LAIR functionality** in three staged steps, then remove the DLL references.
+Improve API robustness and lifetime management. Consumers should be able to safely and predictably manage engine lifetime. Error conditions should be clearer and more actionable.
 
-### Staged plan (from `docs/lair-dependencies.md` Option A)
+### Scope (from `docs/modernization-plan.md`)
 
-| Step | What | Risk |
-|---|---|---|
-| A1 | Remove `LAIR.Extensions` usage: `EnsureContainsKey` → explicit init, `TryReadLine` → `ReadLine()` null-check, `SetPosition` → `DiscardBufferedData + BaseStream.Position` | Low |
-| A2 | Replace `LAIR.IO.BinarySearchTextStream` with an internal `IndexBinarySearchReader` helper | Medium |
-| A3.1 | Introduce internal `Set<T>` shim preserving `AddRange`, `IsReadOnly`, used constructors | Medium-high |
-| — | Remove `LAIR.*` refs from `WordNet.csproj`; validate with characterization tests | — |
-| — | Remove LAIR refs from `TestApplication.csproj` and `WordNet.Tests.csproj` | — |
+| Task | Risk |
+|---|---|
+| Implement `IDisposable` on `WordNetEngine` (keep `Close()` as compatibility shim) | Low–medium |
+| Add defensive argument validation and typed exceptions where currently broad `Exception` is thrown | Low |
+| Audit disk-mode shared stream access and document single-threaded requirement or add locking | Medium |
+| Add tests for disposal behavior and failure contracts | Low |
 
 ### Done
 
-- [x] Branch `feature/phase-3` created from updated `master` (post PR #3 merge).
+- [x] Branch `feature/phase-4` created from updated `master` (post PR #4 merge).
 - [x] 28/28 tests confirmed passing on `master`.
-- [x] `docs/handoff-archive.md` updated with Session 4 and 5 entries.
-- [x] **A1: `LAIR.Extensions` removed from `WordNetEngine.cs` and `SynSet.cs`.**
-  - `using LAIR.Extensions;` removed from both files.
-  - 7 `EnsureContainsKey` calls (6 in `SynSet.cs`, 1 in `WordNetEngine.cs`) → explicit `ContainsKey` + `new`.
-  - 6 `TryReadLine` loops (in `SortIndexFiles` and constructor) → `ReadLine()` null-check + explicit `Close()`.
-  - 1 `SetPosition(0)` → `DiscardBufferedData(); BaseStream.Position = 0`.
-  - 28/28 tests pass; clean build (0 warnings, 0 errors).
-- [x] **A2: `LAIR.IO.BinarySearchTextStream` replaced with internal implementation.**
-  - `src/WordNet/Internal/BinarySearchTextStream.cs` added — `internal` class in `LAIR.ResourceAPIs.WordNet` namespace matching the used API surface: `SearchComparisonDelegate`, constructor `(string path, ...)`, `Search(object key)`, `Stream` property, `Close()`.
-  - Binary search operates directly on `FileStream` at byte level (avoids `StreamReader` buffering issues); `StreamReader` exposed via `Stream` for linear reads in `AllWords`.
-  - `using LAIR.IO;` removed from `WordNetEngine.cs`. No other code changes needed — type name resolves to the internal class.
-  - `<Compile Include>` added to legacy `WordNet.csproj`.
-  - 28/28 tests pass; clean build (0 warnings, 0 errors).
-- [x] **A3.1: Internal `Set<T>` shim added; all LAIR references removed.**
-  - `src/WordNet/Internal/Set.cs` added — `public class Set<T>` in `LAIR.Collections.Generic` namespace backed by `HashSet<T>`. Preserves used API surface: constructors `()`, `(int)`, `(ICollection<T>)`, `(bool)`; members `Add`, `AddRange`, `Contains`, `Count`, `IsReadOnly` (get/set); `IEnumerable<T>`.
-  - `IsReadOnly` setter enforced: protects cached in-memory synset collections from caller mutation (used in `GetSynSets` optimization path).
-  - `using LAIR.Collections.Generic;` statements in `SynSet.cs`, `WordNetEngine.cs`, `WordNetSimilarityModel.cs` now resolve to the internal shim — no code changes needed in those files.
-  - All three `LAIR.*` DLL references removed from `WordNet.csproj`, `TestApplication.csproj`, and `WordNet.Tests.csproj`.
-  - 28/28 tests pass; clean build (0 warnings, 0 errors) across all three projects.
 
 ### Pending
 
-- [ ] PR #4 for Phase 3 — ready to open.
+- [ ] Implement `IDisposable` on `WordNetEngine`; wire `Close()` to call `Dispose()`.
+- [ ] Replace broad `throw new Exception(...)` with typed exceptions (`ArgumentException`, `InvalidOperationException`, `FormatException`, etc.) across `SynSet.cs` and `WordNetEngine.cs`.
+- [ ] Audit disk-mode stream access for thread safety; document or add locking.
+- [ ] Add tests for disposal (double-dispose, use-after-dispose) and typed exception contracts.
 
 ## Recommended immediate next steps
 
-1. Merge PR #4 for Phase 3.
-2. Begin Phase 4 on a new branch (API Robustness — `IDisposable`, defensive validation, typed exceptions).
-
-See `docs/lair-dependencies.md` for the full usage map and replacement table.
+1. Audit `WordNetEngine.cs` and `SynSet.cs` for all `throw new Exception(...)` sites — catalog them.
+2. Implement `IDisposable` on `WordNetEngine`; add disposal tests.
+3. Replace broad exceptions with typed ones; add contract tests.
 
 ## Quick restart prompt (for new chat)
 
 ```text
-Use D:\WordNetAPI-fork on branch master (after merging PR #4).
+Use D:\WordNetAPI-fork on branch feature/phase-4.
 Read docs/handoff.md, docs/modernization-plan.md.
-Phases 0–3 are merged to master. 28/28 tests pass. All LAIR.* dependencies removed.
-Begin Phase 4: API Robustness (IDisposable, defensive validation, typed exceptions).
+Phases 0–3 are merged to master. Phase 4 is active — working tree is clean.
+28/28 tests pass. Do not push until instructed.
+Phase 4 goal: API robustness — IDisposable, typed exceptions, thread-safety audit.
 
 WORKFLOW REMINDER: When opening a new branch, add a new entry to docs/handoff-archive.md
 as the first or second commit, before any implementation work. Record the trigger, references

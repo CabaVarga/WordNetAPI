@@ -3,16 +3,15 @@
 Date: 2026-03-07  
 Source: `docs/quick-repo-audit.md`, `docs/lair-dependencies.md`
 
-## Status snapshot - 2026-03-08 (updated 2026-03-08, session 7)
+## Status snapshot - 2026-03-08 (updated 2026-03-08, session 8)
 
 | Phase | Status |
 |---|---|
 | Phase 0 — Baseline and Guardrails | ✓ Complete (merged PR #1) |
 | Phase 1 — Characterization Tests | ✓ Complete (merged PR #2) |
 | Phase 2 — Runtime Side-Effect Hardening | ✓ Complete (merged PR #3) |
-| Phase 3 — Dependency Reproducibility | 🔄 In progress (`feature/phase-3`) |
-| Phase 3A — LAIR Extraction | 🔄 In progress (`feature/phase-3`, overlaps Phase 3) |
-| Phase 4 — API Robustness | Pending |
+| Phase 3 — Dependency Reproducibility / LAIR Extraction | ✓ Complete (merged PR #4) |
+| Phase 4 — API Robustness | 🔄 Active (`feature/phase-4`) |
 | Phase 5 — Project System Migration | Pending |
 | Phase 6 — Forward Port | Optional |
 
@@ -91,35 +90,25 @@ Address index-file mutation in `WordNetEngine` constructor.
 - Normal runtime reads data only; no file rewrite occurs.
 - Behavior is explicit and documented.
 
-## Phase 3 + 3A - Dependency Reproducibility / LAIR Extraction ← ACTIVE on `feature/phase-3`
+## Phase 3 + 3A - Dependency Reproducibility / LAIR Extraction ✓ COMPLETE (merged PR #4, 2026-03-08)
 
-Stabilize `LAIR.*` dependency story by inlining/replacing the minimal needed functionality (Option A from `docs/lair-dependencies.md`). Phases 3 and 3A are being executed together on the same branch.
+Stabilized `LAIR.*` dependency story by inlining/replacing the minimal needed functionality (Option A from `docs/lair-dependencies.md`).
 
-**Chosen strategy: Option A — internal compatibility layer, then swap internals.**
+- [x] **A1** — Removed `LAIR.Extensions` usage (7 `EnsureContainsKey`, 6 `TryReadLine`, 1 `SetPosition`).
+- [x] **A2** — Replaced `LAIR.IO.BinarySearchTextStream` with internal byte-level implementation.
+- [x] **A3.1** — Introduced internal `Set<T>` shim backed by `HashSet<T>` in `LAIR.Collections.Generic` namespace.
+- [x] Removed all `LAIR.*` references from all three `.csproj` files.
+- [x] Added dependency provenance documentation to `docs/lair-dependencies.md`.
+- [x] 28/28 characterization tests pass in CI on both runners.
 
-- [x] **A1 — Remove `LAIR.Extensions`** (low risk): ✓ complete
-  - [x] Replace `EnsureContainsKey(...)` (6 sites in `SynSet.cs`, 1 in `WordNetEngine.cs`) with explicit `ContainsKey` + assignment.
-  - [x] Replace `TryReadLine(...)` loops with `ReadLine()` null-check loops (6 sites in `WordNetEngine.cs`) + explicit `Close()`.
-  - [x] Replace `SetPosition(0)` with `DiscardBufferedData(); BaseStream.Position = 0` (`WordNetEngine.AllWords` disk branch).
-- [x] **A2 — Replace `LAIR.IO.BinarySearchTextStream`** (medium risk): ✓ complete
-  - [x] Implement internal `BinarySearchTextStream` in `src/WordNet/Internal/`.
-  - [x] Remove `using LAIR.IO;` from `WordNetEngine.cs` — type resolves to internal class; no other code changes needed.
-- [x] **A3.1 — Introduce internal `Set<T>` shim** (medium-high risk): ✓ complete
-  - [x] Add `src/WordNet/Internal/Set.cs` preserving used members: `AddRange`, `IsReadOnly` setter, `new Set<T>()`, `new Set<T>(capacity)`, `new Set<T>(ICollection<T>)`, `new Set<T>(bool)`.
-  - [x] No code changes in `SynSet.cs` or `WordNetEngine.cs` — `using LAIR.Collections.Generic;` resolves to the shim.
-- [x] Remove `LAIR.*` references from `WordNet.csproj`; confirm clean build.
-- [x] Remove `LAIR.*` references from `TestApplication.csproj` and `WordNet.Tests.csproj`.
-- [x] Validate with 28/28 characterization tests (both in-memory and disk-mode paths).
-- [ ] Add dependency provenance note to docs.
-
-**Acceptance criteria**
+**Acceptance criteria met:**
 
 - `src/WordNet/WordNet.csproj` has no `LAIR.*` references.
 - Build succeeds from a clean checkout using documented steps only.
 - 28/28 characterization tests pass in CI on both runners.
 - No hidden GAC/local-machine assumptions.
 
-## Phase 4 - API Robustness and Lifetime Management (3-4 days)
+## Phase 4 - API Robustness and Lifetime Management ← ACTIVE on `feature/phase-4`
 
 - [ ] Implement `IDisposable` on `WordNetEngine` (keep `Close()` as compatibility shim).
 - [ ] Add defensive argument validation and typed exceptions where currently broad `Exception` is thrown.
@@ -170,6 +159,6 @@ Only after previous phases are green.
 
 ## Suggested Next 3 Tasks (Start Here)
 
-1. **[Phase 3 — active]** Add dependency provenance note to docs.
-2. Open PR for Phase 3 when instructed.
-3. Begin Phase 4 (API Robustness — `IDisposable`, defensive validation, typed exceptions).
+1. **[Phase 4 — active]** Implement `IDisposable` on `WordNetEngine`; keep `Close()` as compatibility shim.
+2. Audit exception sites: replace broad `Exception` with `ArgumentException`, `InvalidOperationException`, etc.
+3. Add tests for disposal behavior and failure contracts.
